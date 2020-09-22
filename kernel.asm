@@ -9,6 +9,14 @@ data:
 	Resposta db 'Resposta: ', 0
 	R1 db '1 atsopseR', 0
 
+set_cursor:
+	mov ah, 02h
+	mov al, 20h
+	mov bh, 00h
+	int 10h
+
+	ret
+
 print_string:
 	lodsb
 	cmp al,0
@@ -159,11 +167,26 @@ start:
     mov al, 13
     int 10h
 
+	; Muda cor do background
+	; mov ah, 0xb  
+	; mov bh, 0     
+	; mov bl, 1   
+	; int 10h	
+
 PERGUNTA1:
+
+	; Colocando o cursor de escrita da tela na posição certa
+	mov dh, 05h
+	mov dl, 15
+	call set_cursor
 
 	; Printando primeira pergunta
     mov si, Q1
     call print_string
+
+	mov dh, 17h
+	mov dl, 0
+	call set_cursor
 
 	; Printando "Resposta:"
 	mov si, Resposta
@@ -174,6 +197,6 @@ PERGUNTA1:
 
 	; Aqui era pra ser a comparação entre o que tá na pilha e as respostas, mas por enquanto só printa uma string qualquer
 	mov si, R1
-	call print_string
+	call print_string_nobreak
 
 jmp $
