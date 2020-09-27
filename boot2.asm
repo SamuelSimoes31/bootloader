@@ -5,8 +5,46 @@ jmp 0x0000:start
 ;utilizar o método de shift left (hexadecimal)
 ;e somar o offset no adress base, para rodarmos o kernel.
 
-runningKernel db 'Rodando Kernel...', 0
+str_runningKernel db 'VAI KERNEL, EU ESCOLHO VOCE', 0
+str_olaHumano db 'Ola humano. O que fazes aqui?', 0
+str_desafiar db 'Voce acha que pode me derrotar?', 0
 
+delay:
+	dec dx
+	mov cx, 0
+		.time:
+			inc cx
+			cmp cx, 10000
+			jne .time
+
+	cmp dx, 0
+	jne delay
+ret
+
+printT:
+    mov bh, 3
+    .printT:
+        mov dx, 20000
+        call delay
+        mov ah, 0eh ;modo de vídeo
+        mov al, '.' ;caractere p/ imprimir
+        int 10h
+
+        dec bh
+        cmp bh, 0
+        jne .printT
+
+    call endl
+
+ret
+
+endl:
+    mov ah, 0eh
+    mov al, 0xd
+    int 10h
+    mov al, 0xa
+    int 10h
+ret
 
 print_string:
 	lodsb
@@ -14,30 +52,17 @@ print_string:
 	je end
 
 	mov ah, 0eh
-	mov bl, 15
+	; mov bl, 0ah
 	int 10h
 
-	mov dx, 0
-	.delay_print:
-	inc dx
-	mov cx, 0
-		.time:
-			inc cx
-			cmp cx, 10000
-			jne .time
-
-	cmp dx, 1000
-	jne .delay_print
+	mov dx, 2000
+    call delay
 
 	jmp print_string
 
-	end:
-		mov ah, 0eh
-		mov al, 0xd
-		int 10h
-		mov al, 0xa
-		int 10h
-		ret
+    end:
+	; call endl
+ret
 
 start:
     xor ax, ax
@@ -46,10 +71,33 @@ start:
 
 
     ;parte pra printar as mensagens que quisermos
+    ;modo video
+	mov ah, 0
+	mov al, 12h
+	int 10h
+	;setarCursor
+	mov ah, 02h
+	mov bh, 00
+	mov dh, 0
+	mov dl, 0
+	int 10h
 
-
-    mov si, runningKernel
+    mov si, str_olaHumano
+    mov bl, 0ah
     call print_string
+    call printT
+
+    mov si, str_desafiar
+    mov bl, 0eh
+    call print_string
+    call printT
+
+    mov si, str_runningKernel
+    mov bl, 0ch
+    call print_string
+    call printT
+
+
 
 
     reset:
