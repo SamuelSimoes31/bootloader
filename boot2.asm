@@ -13,8 +13,9 @@ delay:
 	dec dx
 	mov cx, 0
 		.time:
-			inc cx
-			cmp cx, 10000
+			; inc cx
+			; cmp cx, 10000
+            cmp cx, 0
 			jne .time
 
 	cmp dx, 0
