@@ -19,40 +19,55 @@ set_cursor:
 
 	ret
 
+; Essa função recebe uma string no reg si e a compara à string em (Resposta), ao mesmo tempo permitindo uma margem de erro entre elas, localizada no reg cx
+; O resultado é armazenado em cx, caso suficientemente iguais, cx = 1, no contrário, cx = 0
 compare_input_memory:
+	; Setar segundo ponteiro de string pra Entrada, posição onde é armazenada os inputs da função get_string
 	mov di, Entrada
-	cld
+	cld ; Zera a flag de direção de operações de string (operações de string incrementam di e si)
 	.LOOP:
 
+		; Print de debug
 		; mov ah, 0eh
 		; mov al, '-'
 		; mov bl, 7
 		; int 10h
 
+		; Compara os dois caracteres apontados por si(Resposta da pergunta) e di(Entrada do usuario), e incrementa ambos ponteiros
+		; Se forem iguais, pula pra .CMP0, onde comparamos eles com 0 pra saber se chegamos no final da comparação e as strings são iguais
 		cmpsb
 		je .CMP0
 
+		; Voltar di e si pra poder checkar os caracteres comparados em cmpsb
 		dec si
 		dec di
 
+		; Carregar o caractere de si(Resposta) e compara ele com 0, se for, pula pra .END (Strings não são iguais)
 		lodsb
 		cmp al, 0
 		je .END
 
+		; Salva si em bx pra n ser perdido, e move di pra si pra poder comparar o caractere de di com 0, se for, pula pra .END (Strings não são iguais)
 		mov bx, si
 		mov si, di
 		lodsb
 		cmp al, 0
 		je .END
 
+		; Retorna os endereços de (Resposta) e (Entrada) a seus respectivos registradores
 		mov di, si
 		mov si, bx
 
+		; Compara se o contador de erros permitidos chegou a 0, se sim, acabou a função e elas não são iguais
+		; Senão, decrementa o contador de erros permitidos e volta pro loop de checkagem de igualdade
 		cmp cx, 0
 		je return
 		dec cx
 		jmp .LOOP
 
+	; Função que checka se o caracter de si na última comparação é 0, se for, ambas as strings chegaram em seu fim nas comparações,
+	; logo são suficientemente iguais, logo setamos cx como 1, o que representa que elas são suficientemente iguais, e a função acaba.
+	; Caso não seja, volta ao loop de checkagem de igualdade
 	.CMP0:
 		dec si
 		lodsb
@@ -62,6 +77,7 @@ compare_input_memory:
 		mov cx, 1
 		ret
 
+	; Função que seta cx como 0, o que representa que as strings não são suficientemente iguais e a função acaba
 	.END:
 		mov cx, 0
 		ret
@@ -127,11 +143,10 @@ print_string_nobreak:
 		; Única mudança
 		ret
 
-; Função que lê caracteres da entrada e os salvam na pilha
-get_string:
-
-	; Salvando o endereço de retorno da pilha no reg c
-	pop cx
+; Função que lê caracteres da entrada e os salvam no espaço de memória (Entrada)
+get_string_mem:
+	cld
+	mov di, Entrada
 
 	.LOOP:
 		; Lendo caractere
@@ -147,80 +162,11 @@ get_string:
 		mov bl, 7
 		int 10h
 
-		; Salvando caractere na pilha
-		push ax
-
-		; Comparando com enter para terminar a leitura
-		cmp al, 13
-		jne .LOOP
-
-		; Removendo caractere do enter da pilha
-		pop ax
-
-		; Quebra de linha pra deixar bonitinho, acho que não vai ser necessário
-		mov ah, 0xe
-		mov al, 10
-		mov bl, 7
-		int 10h
-
-		; Retornando o endereço de retorno à pilha a partir do reg c
-		push cx
-		
-		ret
-
-	; Tratando o backspace
-	.BCKSPC:
-		; Removendo o caractere da pilha mais recente
-		pop ax
-
-		; Caso o valor da pilha seja zero representa que pilha está vazia, logo pushamos o zero de volta e nada é feito
-		cmp al, 0
-		je .PUSH0
-
-		; Printando o backspace, que por si só apenas retorna o ponteiro de escrita em uma unidade, sem apagar nada
-		mov ah, 0xe
-		mov al, 0x8
-		mov bl, 7
-		int 10h
-
-		; Printando espaço, de modo que sobreescreva o caractere que o ponteiro de escrita aponta
-		mov ah, 0xe
-		mov al, ' '
-		mov bl, 7
-		int 10h
-
-		; Printando backspace novamente, para deixar o ponteiro de escrita apontando para o espaço que será ocupado pela próxima letra lida
-		mov ah, 0xe
-		mov al, 8
-		mov bl, 7
-		int 10h
-
-		; Retorno ao loop de leitura
-		jmp .LOOP
-
-	.PUSH0:
-		push 0
-		jmp .LOOP
-
-get_string_mem:
-	cld
-	mov di, Entrada
-
-	.LOOP:
-
-		mov ah, 0
-		int 16h
-
-		cmp al, 0x8
-		je .BCKSPC
-
-		mov ah, 0xe
-		mov bl, 7
-		int 10h
-
+		; Comparando com enter para terminar a leitura 
 		cmp al, 13
 		je .END
 
+		; Salvando caractere na memória apontada por di (Entrada) e volta ao loop
 		stosb
 		jmp .LOOP
 
@@ -231,12 +177,15 @@ get_string_mem:
 		mov bl, 7
 		int 10h
 
+		; Armazendando 0 no próximo espaço de memória de di(Entrada) para representar o final da string, e então retornar ao endereço da pilha
 		mov al, 0
 		stosb
 		ret
 
 	.BCKSPC: ; R _
 
+		; Jogando o endereço de di para si e decrementando-o pra checkar se depois do backspace di ainda apontaria pra uma posição dentro de (Entrada)
+		; Caso não, voltamos ao loop
 		mov si, di
 		dec si
 		lodsb ; R _
@@ -261,6 +210,7 @@ get_string_mem:
 		mov bl, 7
 		int 10h
 
+		; Decrementando di, para que a próxima escrita em (Entrada) sobreescreva o caractere mais recente
 		dec di
 
 		jmp .LOOP
@@ -307,7 +257,7 @@ PERGUNTA1:
 	mov dl, 0
 	call set_cursor
 
-	; Printando "Resposta:"
+	; Printando "Resposta: "
 	mov si, Resposta
 	mov bl, 15
 	call print_string_nobreak
@@ -315,12 +265,13 @@ PERGUNTA1:
 	; Salvando a leitura da entrada na pilha até apertarem enter
 	call get_string_mem
 
-	; Aqui era pra ser a comparação entre o que tá na pilha e as respostas, mas por enquanto só printa uma string qualquer
+	; Movemos ao ponteiro de primeira string da comparação pra a primeira resposta (R1), e dizemos que o máximo de erros permitidos é 2 (cx)
+	; e então chamamos a função de comparação entre a string de si e a string em (Entrada)
 	mov si, R1
 	mov cx, 2
 	call compare_input_memory
 
-	cmp cx, 0
+	cmp cx, 0; Se cx = 0, não são iguais, se cx = 1, são iguais
 	je PERGUNTA1F
 	mov bl, 0ah
 	mov si, CERTO
