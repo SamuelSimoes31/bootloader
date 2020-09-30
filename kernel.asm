@@ -8,7 +8,7 @@ data:
 	ERRADO db 'ERRADO',0
     Q1 db 'Pergunta 1?', 0
 	Resposta db 'Resposta: ', 0
-	R1 db 'Resposta 1', 0
+	R1 db 'RESPOSTA 1', 0
 	Entrada times 101 db 0
 
 set_cursor:
@@ -165,10 +165,18 @@ get_string_mem:
 		; Comparando com enter para terminar a leitura 
 		cmp al, 13
 		je .END
+		
+		; Checkando se é minusculo para salvar como maiusculo
+		cmp al, 'a'
+		jl .STOSB
+		cmp al, 'z'
+		jg .STOSB
+		sub al, 32
 
 		; Salvando caractere na memória apontada por di (Entrada) e volta ao loop
-		stosb
-		jmp .LOOP
+		.STOSB:
+			stosb
+			jmp .LOOP
 
 	.END:
 		; Quebra de linha pra deixar bonitinho, acho que não vai ser necessário
