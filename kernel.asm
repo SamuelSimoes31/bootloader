@@ -4,7 +4,7 @@ jmp 0x0000:start
 data:
 	
 	;Dados do projeto...
-	CERTO db 'CERTO',0
+	CERTO db 'CERTO', 0
 	ERRADO db 'ERRADO',0
     Q1 db 'Pergunta 1?', 0
 	Resposta db 'Resposta: ', 0
@@ -58,15 +58,15 @@ compare_input_memory:
 		mov di, si
 		mov si, bx
 
-		; Compara se o contador de erros permitidos chegou a 0, se sim, acabou a função e elas não são iguais
+		; Compara se o contador de erros permitidos chegou a 3, se sim, acabou a função e elas não são iguais
 		; Senão, decrementa o contador de erros permitidos e volta pro loop de checkagem de igualdade
-		cmp cx, 0
+		inc cx
+		cmp cx, 3
 		je return
-		dec cx
 		jmp .LOOP
 
 	; Função que checka se o caracter de si na última comparação é 0, se for, ambas as strings chegaram em seu fim nas comparações,
-	; logo são suficientemente iguais, logo setamos cx como 1, o que representa que elas são suficientemente iguais, e a função acaba.
+	; logo são suficientemente iguais, e a função acaba.
 	; Caso não seja, volta ao loop de checkagem de igualdade
 	.CMP0:
 		dec si
@@ -74,12 +74,11 @@ compare_input_memory:
 		cmp al, 0
 		jne .LOOP
 
-		mov cx, 1
 		ret
 
-	; Função que seta cx como 0, o que representa que as strings não são suficientemente iguais e a função acaba
+	; Função que seta cx como 3, o que representa que as strings não são suficientemente iguais e a função acaba
 	.END:
-		mov cx, 0
+		mov cx, 3
 		ret
 
 print_string:
@@ -273,13 +272,13 @@ PERGUNTA1:
 	; Salvando a leitura da entrada na pilha até apertarem enter
 	call get_string_mem
 
-	; Movemos ao ponteiro de primeira string da comparação pra a primeira resposta (R1), e dizemos que o máximo de erros permitidos é 2 (cx)
+	; Movemos ao ponteiro de primeira string da comparação pra a primeira resposta (R1), e setamos o contador de erros para 0 (cx)
 	; e então chamamos a função de comparação entre a string de si e a string em (Entrada)
 	mov si, R1
-	mov cx, 2
+	mov cx, 0
 	call compare_input_memory
 
-	cmp cx, 0; Se cx = 0, não são iguais, se cx = 1, são iguais
+	cmp cx, 3; Se cx = 3, não são suficientemente iguais
 	je PERGUNTA1F
 	mov bl, 0ah
 	mov si, CERTO
