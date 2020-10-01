@@ -4,8 +4,10 @@ jmp 0x0000:start
 data:
 	
 	;Dados do projeto...
-	CERTO db 'CERTO', 0
-	ERRADO db 'ERRADO',0
+	Serio db 'Serio? Era isso?', 0
+	Quase db 'Hmm...',0
+	Certo db 'CERTO', 0
+	Errado db 'KKKKKKKKKKKKKKKKKKK',0
     Q1 db 'Pergunta 1?', 0
 	Resposta db 'Resposta: ', 0
 	R1 db 'RESPOSTA 1', 0
@@ -87,7 +89,7 @@ print_string:
 	je .end
 
 	mov ah, 0eh
-	; mov bl, 15
+	; mov bl, 15 Pode escolher a cor antes de chamar a função
 	int 10h
 
 	mov dx, 0
@@ -120,7 +122,7 @@ print_string_nobreak:
 	je .end
 
 	mov ah, 0eh
-	; mov bl, 15
+	; mov bl, 15 Pode escolher a cor antes de chamar a função
 	int 10h
 
 	mov dx, 0
@@ -250,6 +252,10 @@ start:
 
 PERGUNTA1:
 
+	mov ah, 0
+	mov al, 13
+    int 10h
+
 	; Colocando o cursor de escrita da tela na posição certa
 	mov dh, 05h
 	mov dl, 15
@@ -278,16 +284,76 @@ PERGUNTA1:
 	mov cx, 0
 	call compare_input_memory
 
+	mov ax, PERGUNTA1
+	push ax
+	
 	cmp cx, 3; Se cx = 3, não são suficientemente iguais
-	je PERGUNTA1F
-	mov bl, 0ah
-	mov si, CERTO
-	call print_string_nobreak
-	jmp $
+	je TELA_ERRADO
+	cmp cx, 0
+	je TELA_CERTO
+	jmp TELA_QUASE
 
-	PERGUNTA1F:
-	mov bl, 0ch
-	mov si, ERRADO
-	call print_string_nobreak
+TELA_QUASE:
+
+	mov ah, 0
+	mov al, 13
+    int 10h
+
+	; Muda cor do background
+	mov ah, 0xb  
+	mov bh, 0    
+	mov bl, 0x1  
+	int 10h	
+
+	mov dh, 10
+	mov dl, 17
+	call set_cursor
+
+	mov si, Quase
+	mov bl, 0eh
+	call print_string
+
+	mov ah, 0
+	int 16h
+
+	ret
+
+TELA_ERRADO:
+
+	mov ah, 0
+	mov al, 13
+    int 10h
+
+	; Muda cor do background
+	; mov ah, 0xb  
+	; mov bh, 0    
+	; mov bl, 04h  
+	; int 10h	
+
+	mov dh, 10
+	mov dl, 11
+	call set_cursor
+
+	mov si, Errado
+	mov bl, 04h
+	call print_string
+
+	mov ah, 0
+	int 16h
+
+	mov dh, 12
+	mov dl, 13
+	call set_cursor
+
+	mov si, Serio
+	call print_string
+
+	mov ah, 0
+	int 16h
+
+	ret
+
+TELA_CERTO:
+	pop ax
 
 jmp $
