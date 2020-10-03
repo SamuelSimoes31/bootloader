@@ -8,10 +8,12 @@ data:
 	Quase db 'Hmm...',0
 	Certo db 'CERTO', 0
 	Errado db 'KKKKKKKKKKKKKKKKKKK',0
+	QN db 'Qual o seu nome?', 0
     Q1 db 'Pergunta 1?', 0
 	Resposta db 'Resposta: ', 0
 	R1 db 'RESPOSTA 1', 0
 	Entrada times 101 db 0
+	Nome times 101 db 0
 
 set_cursor:
 	mov ah, 02h
@@ -149,6 +151,8 @@ get_string_mem:
 	cld
 	mov di, Entrada
 
+get_nome:
+
 	.LOOP:
 		; Lendo caractere
 		mov ah, 0
@@ -249,6 +253,35 @@ start:
 	; mov bh, 0     
 	; mov bl, 1   
 	; int 10h	
+
+PEGANOME:
+
+	mov ah, 0
+	mov al, 13
+    int 10h
+
+	; Colocando o cursor de escrita da tela na posição certa
+	mov dh, 05h
+	mov dl, 12
+	call set_cursor
+
+	; Printando primeira pergunta
+    mov si, QN
+	mov bl, 10
+    call print_string
+
+	mov dh, 17h
+	mov dl, 0
+	call set_cursor
+
+	; Printando "Resposta: "
+	mov si, Resposta
+	mov bl, 15
+	call print_string_nobreak
+
+	cld
+	mov di, Nome
+	call get_nome
 
 PERGUNTA1:
 
