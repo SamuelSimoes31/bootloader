@@ -29,11 +29,17 @@ data:
 
 	Q3_0 db 'Na noite eu venho, sem ser chamada', 0
 	Q3_1 db 'De dia, estou perdida, sem ser roubada', 0
-	Q3_2 db 'Sou como um diamente, mas nao sou joia', 0
+	Q3_2 db 'Sou como um diamante, mas nao sou joia', 0
 	Q3_3 db 'O que eu sou?', 0
 	R3 db 'ESTRELA', 0
 	I3 db 0
 	Quase3 db 'Brilha brilha', 0
+
+	Q4_0 db 'Ha 10 velas acesas', 0
+	Q4_1 db 'Se o vento apagar 3, quantas restam?', 0
+	R4 db '10', 0
+	I4 db '7', 0
+	Quase4 db 'Ah ah ah, apagado', 0
 
 	Entrada times 101 db 0
 	Nome times 101 db 0
@@ -669,5 +675,83 @@ TELA_QUASE3:
 	ret
 
 PERGUNTA4:
+	pop ax
+
+	mov ah, 0
+	mov al, 13
+    int 10h
+
+	; Colocando o cursor de escrita da tela na posição certa
+	mov dh, 05h
+	mov dl, 11
+	call set_cursor
+
+	; Printando pergunta
+    mov si, Q4_0
+	mov bl, 15
+    call print_string
+
+	; Colocando o cursor de escrita da tela na posição certa
+	mov dh, 07h
+	mov dl, 2
+	call set_cursor
+
+	; Printando pergunta
+    mov si, Q4_1
+	mov bl, 15
+    call print_string
+
+	mov dh, 17h
+	mov dl, 0
+	call set_cursor
+
+	; Printando "Resposta: "
+	mov si, Resposta
+	mov bl, 15
+	call print_string_nobreak
+
+	; Salvando a leitura da entrada na pilha até apertarem enter
+	call get_string_mem
+
+	mov ax, PERGUNTA4
+	push ax
+
+	mov si, I4
+	mov cx, 0
+	call compare_input_memory
 	
+	cmp cx, 0
+	je TELA_QUASE4
+	; Movemos ao ponteiro de primeira string da comparação pra a primeira resposta (R1), e setamos o contador de erros para 0 (cx)
+	; e então chamamos a função de comparação entre a string de si e a string em (Entrada)
+	mov si, R4
+	mov cx, 0
+	call compare_input_memory
+	
+	cmp cx, 1; Se cx = 3, não são suficientemente iguais
+	jg TELA_ERRADO
+	cmp cx, 0
+	je PERGUNTA5
+	jmp TELA_QUASE
+
+TELA_QUASE4:
+	mov ah, 0
+	mov al, 13
+    int 10h
+
+	mov dh, 10
+	mov dl, 12
+	call set_cursor
+
+	mov si, Quase4
+	mov bl, 0eh
+	call print_string
+
+	mov ah, 0
+	int 16h
+
+	ret
+
+PERGUNTA5:
+
 jmp $
