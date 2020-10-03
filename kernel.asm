@@ -41,6 +41,10 @@ data:
 	I4 db '7', 0
 	Quase4 db 'Ah ah ah, apagado', 0
 
+	Q5_0 db 'Qual a velocidade no ar', 0
+	Q5_1 db 'de uma andorinha sem carga? (em km/h)', 0
+	R5 db '32', 0
+
 	Entrada times 101 db 0
 	Nome times 101 db 0
 
@@ -753,5 +757,58 @@ TELA_QUASE4:
 	ret
 
 PERGUNTA5:
+	pop ax
 
+	mov ah, 0
+	mov al, 13
+    int 10h
+
+	; Colocando o cursor de escrita da tela na posição certa
+	mov dh, 05h
+	mov dl, 8
+	call set_cursor
+
+	; Printando pergunta
+    mov si, Q5_0
+	mov bl, 15
+    call print_string
+
+	; Colocando o cursor de escrita da tela na posição certa
+	mov dh, 07h
+	mov dl, 2
+	call set_cursor
+
+	; Printando pergunta
+    mov si, Q5_1
+	mov bl, 15
+    call print_string
+
+	mov dh, 17h
+	mov dl, 0
+	call set_cursor
+
+	; Printando "Resposta: "
+	mov si, Resposta
+	mov bl, 15
+	call print_string_nobreak
+
+	; Salvando a leitura da entrada na pilha até apertarem enter
+	call get_string_mem
+
+	mov ax, PERGUNTA5
+	push ax
+
+	; Movemos ao ponteiro de primeira string da comparação pra a primeira resposta (R1), e setamos o contador de erros para 0 (cx)
+	; e então chamamos a função de comparação entre a string de si e a string em (Entrada)
+	mov si, R5
+	mov cx, 0
+	call compare_input_memory
+	
+	cmp cx, 1; Se cx = 3, não são suficientemente iguais
+	jg TELA_ERRADO
+	cmp cx, 0
+	je PERGUNTA6
+	jmp TELA_QUASE
+
+PERGUNTA6:
 jmp $
