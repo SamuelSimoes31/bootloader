@@ -8,10 +8,41 @@ data:
 	Quase db 'Hmm...',0
 	Certo db 'CERTO', 0
 	Errado db 'KKKKKKKKKKKKKKKKKKK',0
-    Q1 db 'Pergunta 1?', 0
 	Resposta db 'Resposta: ', 0
-	R1 db 'RESPOSTA 1', 0
+
+	QN db 'Qual o seu nome?', 0
+	RN db 'Ja vi nomes melhores...', 0
+
+    Q1 db '1 e 1', 0
+	R1 db 'TRUE', 0
+	I1_0 db '11', 0
+	I1_1 db '2', 0
+	I1_2 db '1', 0
+	Quase1_0 db 'Acorde seu compilador interior', 0
+	Quase1_1 db 'toBool()', 0
+
+	Q2 db 'Qual a capital da Assiria?',0
+	R2 db 0
+	I2 db 'ASSUR', 0
+	Quase2_0 db 'A Assiria nem existe mais, maluco', 0
+	Quase2_1 db 'Tem resposta nao', 0
+
+	Q3_0 db 'Na noite eu venho, sem ser chamada', 0
+	Q3_1 db 'De dia, estou perdida, sem ser roubada', 0
+	Q3_2 db 'Sou como um diamante, mas nao sou joia', 0
+	Q3_3 db 'O que eu sou?', 0
+	R3 db 'ESTRELA', 0
+	I3 db 0
+	Quase3 db 'Brilha brilha', 0
+
+	Q4_0 db 'Ha 10 velas acesas', 0
+	Q4_1 db 'Se o vento apagar 3, quantas restam?', 0
+	R4 db '10', 0
+	I4 db '7', 0
+	Quase4 db 'Ah ah ah, apagado', 0
+
 	Entrada times 101 db 0
+	Nome times 101 db 0
 
 set_cursor:
 	mov ah, 02h
@@ -64,7 +95,7 @@ compare_input_memory:
 		; Senão, decrementa o contador de erros permitidos e volta pro loop de checkagem de igualdade
 		inc cx
 		cmp cx, 3
-		je return
+		jge return
 		jmp .LOOP
 
 	; Função que checka se o caracter de si na última comparação é 0, se for, ambas as strings chegaram em seu fim nas comparações,
@@ -149,6 +180,8 @@ get_string_mem:
 	cld
 	mov di, Entrada
 
+get_nome:
+
 	.LOOP:
 		; Lendo caractere
 		mov ah, 0
@@ -227,72 +260,6 @@ get_string_mem:
 return:
 	ret
 
-start:
-    xor ax, ax
-    mov ds, ax
-    mov es, ax
-    
-    ;Código do projeto...
-
-    mov ax, 0
-    mov ds, ax
-
-	push ax;
-
-    int 10h
-
-    mov al, 13
-    int 10h
-
-	; Muda cor do background
-	; mov ah, 0xb  
-	; mov bh, 0     
-	; mov bl, 1   
-	; int 10h	
-
-PERGUNTA1:
-
-	mov ah, 0
-	mov al, 13
-    int 10h
-
-	; Colocando o cursor de escrita da tela na posição certa
-	mov dh, 05h
-	mov dl, 15
-	call set_cursor
-
-	; Printando primeira pergunta
-    mov si, Q1
-	mov bl, 15
-    call print_string
-
-	mov dh, 17h
-	mov dl, 0
-	call set_cursor
-
-	; Printando "Resposta: "
-	mov si, Resposta
-	mov bl, 15
-	call print_string_nobreak
-
-	; Salvando a leitura da entrada na pilha até apertarem enter
-	call get_string_mem
-
-	; Movemos ao ponteiro de primeira string da comparação pra a primeira resposta (R1), e setamos o contador de erros para 0 (cx)
-	; e então chamamos a função de comparação entre a string de si e a string em (Entrada)
-	mov si, R1
-	mov cx, 0
-	call compare_input_memory
-
-	mov ax, PERGUNTA1
-	push ax
-	
-	cmp cx, 3; Se cx = 3, não são suficientemente iguais
-	je TELA_ERRADO
-	cmp cx, 0
-	je TELA_CERTO
-	jmp TELA_QUASE
-
 TELA_QUASE:
 
 	mov ah, 0
@@ -334,7 +301,7 @@ TELA_ERRADO:
 	mov dl, 11
 	call set_cursor
 
-	mov si, Errado
+	mov si, Entrada
 	mov bl, 04h
 	call print_string
 
@@ -353,7 +320,438 @@ TELA_ERRADO:
 
 	ret
 
-TELA_CERTO:
+start:
+    xor ax, ax
+    mov ds, ax
+    mov es, ax
+    
+    ;Código do projeto...
+
+    mov ax, 0
+    mov ds, ax
+
+	push ax;
+
+    int 10h
+
+    mov al, 13
+    int 10h
+
+	; Muda cor do background
+	; mov ah, 0xb  
+	; mov bh, 0     
+	; mov bl, 1   
+	; int 10h	
+
+PEGANOME:
+
+	mov ah, 0
+	mov al, 13
+    int 10h
+
+	; Colocando o cursor de escrita da tela na posição certa
+	mov dh, 05h
+	mov dl, 12
+	call set_cursor
+
+	; Printando primeira pergunta
+    mov si, QN
+	mov bl, 10
+    call print_string
+
+	mov dh, 17h
+	mov dl, 0
+	call set_cursor
+
+	; Printando "Resposta: "
+	mov si, Resposta
+	mov bl, 15
+	call print_string_nobreak
+
+	cld
+	mov di, Nome
+	call get_nome
+
+PRE1:
+	mov ah, 0
+	mov al, 13
+    int 10h
+
+	; Colocando o cursor de escrita da tela na posição certa
+	mov dh, 09h
+	mov dl, 9
+	call set_cursor
+
+	; Printando primeira pergunta
+    mov si, RN
+	mov bl, 14
+    call print_string
+
+	mov ah, 0
+	int 16h
+
+PERGUNTA1:
+
+	mov ah, 0
+	mov al, 13
+    int 10h
+
+	; Colocando o cursor de escrita da tela na posição certa
+	mov dh, 05h
+	mov dl, 18
+	call set_cursor
+
+	; Printando primeira pergunta
+    mov si, Q1
+	mov bl, 15
+    call print_string
+
+	mov dh, 17h
+	mov dl, 0
+	call set_cursor
+
+	; Printando "Resposta: "
+	mov si, Resposta
+	mov bl, 15
+	call print_string_nobreak
+
+	; Salvando a leitura da entrada na pilha até apertarem enter
+	call get_string_mem
+
+	mov ax, PERGUNTA1
+	push ax
+
+	mov si, I1_0
+	mov cx, 0
+	call compare_input_memory
+	
+	cmp cx, 0
+	je TELA_QUASE1_0
+
+	mov si, I1_1
+	mov cx, 0
+	call compare_input_memory
+	
+	cmp cx, 0
+	je TELA_QUASE1_0
+
+	mov si, I1_2
+	mov cx, 0
+	call compare_input_memory
+	
+	cmp cx, 0
+	je TELA_QUASE1_1
+
+	; Movemos ao ponteiro de primeira string da comparação pra a primeira resposta (R1), e setamos o contador de erros para 0 (cx)
+	; e então chamamos a função de comparação entre a string de si e a string em (Entrada)
+	mov si, R1
+	mov cx, 0
+	call compare_input_memory
+	
+	cmp cx, 3; Se cx = 3, não são suficientemente iguais
+	je TELA_ERRADO
+	cmp cx, 0
+	je PERGUNTA2
+	jmp TELA_QUASE
+
+TELA_QUASE1_0:
+	mov ah, 0
+	mov al, 13
+    int 10h
+
+	mov dh, 10
+	mov dl, 5
+	call set_cursor
+
+	mov si, Quase1_0
+	mov bl, 0eh
+	call print_string
+
+	mov ah, 0
+	int 16h
+
+	ret
+
+TELA_QUASE1_1:
+	mov ah, 0
+	mov al, 13
+    int 10h
+
+	mov dh, 10
+	mov dl, 16
+	call set_cursor
+
+	mov si, Quase1_1
+	mov bl, 0eh
+	call print_string
+
+	mov ah, 0
+	int 16h
+
+	ret
+
+PERGUNTA2:
 	pop ax
+
+	mov ah, 0
+	mov al, 13
+    int 10h
+
+	; Colocando o cursor de escrita da tela na posição certa
+	mov dh, 05h
+	mov dl, 7
+	call set_cursor
+
+	; Printando pergunta
+    mov si, Q2
+	mov bl, 15
+    call print_string
+
+	mov dh, 17h
+	mov dl, 0
+	call set_cursor
+
+	; Printando "Resposta: "
+	mov si, Resposta
+	mov bl, 15
+	call print_string_nobreak
+
+	; Salvando a leitura da entrada na pilha até apertarem enter
+	call get_string_mem
+
+	mov ax, PERGUNTA2
+	push ax
+
+	mov si, I2
+	mov cx, 0
+	call compare_input_memory
+	
+	cmp cx, 3
+	jl TELA_QUASE2
+	; Movemos ao ponteiro de primeira string da comparação pra a primeira resposta (R1), e setamos o contador de erros para 0 (cx)
+	; e então chamamos a função de comparação entre a string de si e a string em (Entrada)
+	mov si, R2
+	mov cx, 0
+	call compare_input_memory
+	
+	cmp cx, 3; Se cx = 3, não são suficientemente iguais
+	je TELA_ERRADO
+	cmp cx, 0
+	je PERGUNTA3
+	jmp TELA_QUASE
+
+TELA_QUASE2:
+	mov ah, 0
+	mov al, 13
+    int 10h
+
+	mov dh, 9
+	mov dl, 4
+	call set_cursor
+
+	mov si, Quase2_0
+	mov bl, 0eh
+	call print_string
+
+	mov ah, 0
+	int 16h
+
+	mov dh, 11
+	mov dl, 12
+	call set_cursor
+
+	mov si, Quase2_1
+	mov bl, 0eh
+	call print_string
+
+	mov ah, 0
+	int 16h
+
+	ret
+
+PERGUNTA3:
+	pop ax
+
+	mov ah, 0
+	mov al, 13
+    int 10h
+
+	; Colocando o cursor de escrita da tela na posição certa
+	mov dh, 05h
+	mov dl, 3
+	call set_cursor
+
+	; Printando pergunta
+    mov si, Q3_0
+	mov bl, 15
+    call print_string
+
+	mov ah, 0
+	int 16h
+
+	mov dh, 07h
+	mov dl, 1
+	call set_cursor
+
+	; Printando pergunta
+    mov si, Q3_1
+	mov bl, 15
+    call print_string
+
+	mov ah, 0
+	int 16h
+
+	mov dh, 09h
+	mov dl, 1
+	call set_cursor
+
+	; Printando pergunta
+    mov si, Q3_2
+	mov bl, 15
+    call print_string
+
+	mov ah, 0
+	int 16h
+
+	mov dh, 11
+	mov dl, 14
+	call set_cursor
+
+	; Printando pergunta
+    mov si, Q3_3
+	mov bl, 15
+    call print_string
+
+	mov dh, 17h
+	mov dl, 0
+	call set_cursor
+
+	; Printando "Resposta: "
+	mov si, Resposta
+	mov bl, 15
+	call print_string_nobreak
+
+	; Salvando a leitura da entrada na pilha até apertarem enter
+	call get_string_mem
+
+	mov ax, PERGUNTA3
+	push ax
+
+	mov si, I3
+	mov cx, 0
+	call compare_input_memory
+	
+	cmp cx, 0
+	je TELA_QUASE3
+
+	; Movemos ao ponteiro de primeira string da comparação pra a primeira resposta (R1), e setamos o contador de erros para 0 (cx)
+	; e então chamamos a função de comparação entre a string de si e a string em (Entrada)
+	mov si, R3
+	mov cx, 0
+	call compare_input_memory
+	
+	cmp cx, 3; Se cx = 3, não são suficientemente iguais
+	je TELA_ERRADO
+	cmp cx, 0
+	je PERGUNTA4
+	jmp TELA_QUASE
+
+TELA_QUASE3:
+	mov ah, 0
+	mov al, 13
+    int 10h
+
+	mov dh, 10
+	mov dl, 14
+	call set_cursor
+
+	mov si, Quase3
+	mov bl, 0eh
+	call print_string
+
+	mov ah, 0
+	int 16h
+
+	ret
+
+PERGUNTA4:
+	pop ax
+
+	mov ah, 0
+	mov al, 13
+    int 10h
+
+	; Colocando o cursor de escrita da tela na posição certa
+	mov dh, 05h
+	mov dl, 11
+	call set_cursor
+
+	; Printando pergunta
+    mov si, Q4_0
+	mov bl, 15
+    call print_string
+
+	; Colocando o cursor de escrita da tela na posição certa
+	mov dh, 07h
+	mov dl, 2
+	call set_cursor
+
+	; Printando pergunta
+    mov si, Q4_1
+	mov bl, 15
+    call print_string
+
+	mov dh, 17h
+	mov dl, 0
+	call set_cursor
+
+	; Printando "Resposta: "
+	mov si, Resposta
+	mov bl, 15
+	call print_string_nobreak
+
+	; Salvando a leitura da entrada na pilha até apertarem enter
+	call get_string_mem
+
+	mov ax, PERGUNTA4
+	push ax
+
+	mov si, I4
+	mov cx, 0
+	call compare_input_memory
+	
+	cmp cx, 0
+	je TELA_QUASE4
+	; Movemos ao ponteiro de primeira string da comparação pra a primeira resposta (R1), e setamos o contador de erros para 0 (cx)
+	; e então chamamos a função de comparação entre a string de si e a string em (Entrada)
+	mov si, R4
+	mov cx, 0
+	call compare_input_memory
+	
+	cmp cx, 1; Se cx = 3, não são suficientemente iguais
+	jg TELA_ERRADO
+	cmp cx, 0
+	je PERGUNTA5
+	jmp TELA_QUASE
+
+TELA_QUASE4:
+	mov ah, 0
+	mov al, 13
+    int 10h
+
+	mov dh, 10
+	mov dl, 12
+	call set_cursor
+
+	mov si, Quase4
+	mov bl, 0eh
+	call print_string
+
+	mov ah, 0
+	int 16h
+
+	ret
+
+PERGUNTA5:
 
 jmp $
