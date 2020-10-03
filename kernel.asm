@@ -17,7 +17,9 @@ data:
 	R1 db 'TRUE', 0
 	I1_0 db '11', 0
 	I1_1 db '2', 0
-	Quase1 db 'Acorde seu compilador interior', 0
+	I1_2 db '1', 0
+	Quase1_0 db 'Acorde seu compilador interior', 0
+	Quase1_1 db 'toBool()', 0
 
 	Q2 db 'Qual a capital da Assiria?',0
 	R2 db 0
@@ -418,14 +420,21 @@ PERGUNTA1:
 	call compare_input_memory
 	
 	cmp cx, 0
-	je TELA_QUASE1
+	je TELA_QUASE1_0
 
 	mov si, I1_1
 	mov cx, 0
 	call compare_input_memory
 	
 	cmp cx, 0
-	je TELA_QUASE1
+	je TELA_QUASE1_0
+
+	mov si, I1_2
+	mov cx, 0
+	call compare_input_memory
+	
+	cmp cx, 0
+	je TELA_QUASE1_1
 
 	; Movemos ao ponteiro de primeira string da comparação pra a primeira resposta (R1), e setamos o contador de erros para 0 (cx)
 	; e então chamamos a função de comparação entre a string de si e a string em (Entrada)
@@ -439,7 +448,7 @@ PERGUNTA1:
 	je PERGUNTA2
 	jmp TELA_QUASE
 
-TELA_QUASE1:
+TELA_QUASE1_0:
 	mov ah, 0
 	mov al, 13
     int 10h
@@ -448,7 +457,25 @@ TELA_QUASE1:
 	mov dl, 5
 	call set_cursor
 
-	mov si, Quase1
+	mov si, Quase1_0
+	mov bl, 0eh
+	call print_string
+
+	mov ah, 0
+	int 16h
+
+	ret
+
+TELA_QUASE1_1:
+	mov ah, 0
+	mov al, 13
+    int 10h
+
+	mov dh, 10
+	mov dl, 16
+	call set_cursor
+
+	mov si, Quase1_1
 	mov bl, 0eh
 	call print_string
 
@@ -642,5 +669,5 @@ TELA_QUASE3:
 	ret
 
 PERGUNTA4:
-
+	
 jmp $
