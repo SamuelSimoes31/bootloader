@@ -992,7 +992,7 @@ PERGUNTA6:
 	cmp cx, 1; Se cx = 3, não são suficientemente iguais
 	jg TELA_ERRADO
 	cmp cx, 0
-	je PERGUNTA6
+	je PERGUNTACOR
 	jmp TELA_QUASE6
 TELA_QUASE6:
 	mov ah, 0
