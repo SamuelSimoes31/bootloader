@@ -41,6 +41,24 @@ data:
 	I4 db '7', 0
 	Quase4 db 'Ah ah ah, apagado', 0
 
+	QCOR db 'Ha 1 impostor entre nos', 0
+	QVOTO db 'SEU VOTO: ', 0
+	Qnot db ' nao era o Impostor', 0
+	Qremain db '1 impostor restante', 0
+
+	VERMELHO db 'VERMELHO', 0
+	AZUL db 'AZUL', 0
+	VERDE db 'VERDE', 0
+	ROSA db 'ROSA', 0
+	LARANJA db 'LARANJA', 0
+	AMARELO db 'AMARELO', 0
+	CINZA db 'CINZA', 0
+	BRANCO db 'BRANCO', 0
+	ROXO db 'ROXO', 0
+	MARROM db 'MARROM', 0
+	CIANO db 'CIANO', 0
+	LIMAO db 'VERDE CLARO', 0
+
 	Entrada times 101 db 0
 	Nome times 101 db 0
 
@@ -174,6 +192,45 @@ print_string_nobreak:
 	.end:
 		; Única mudança
 		ret
+
+delay:
+	dec dx
+	mov cx, 0
+		.time:
+			inc cx
+			cmp cx, 10000
+			jne .time
+
+	cmp dx, 0
+	jne delay
+ret
+
+endl:
+    mov ah, 0eh
+    mov al, 0xd
+    int 10h
+    mov al, 0xa
+    int 10h
+ret
+
+print_string_lento:
+	lodsb
+	cmp al,0
+	je end
+
+	mov ah, 0eh
+	; mov bl, 0ah
+	int 10h
+
+	mov dx, 4000
+    call delay
+
+	jmp print_string_lento
+
+    end:
+	; call endl
+ret
+
 
 ; Função que lê caracteres da entrada e os salvam no espaço de memória (Entrada)
 get_string_mem:
@@ -320,6 +377,46 @@ TELA_ERRADO:
 
 	ret
 
+TELA_NOT_IMPOSTOR:
+
+	mov ah, 0
+	mov al, 13
+    int 10h
+
+	; Muda cor do background
+	; mov ah, 0xb  
+	; mov bh, 0    
+	; mov bl, 04h  
+	; int 10h	
+
+	mov dh, 10
+	mov dl, 7
+	call set_cursor
+
+	mov si, Entrada
+	mov bl, 15
+	call print_string_lento
+
+	mov si, Qnot
+	mov bl, 15
+	call print_string_lento
+
+	mov dx, 16000
+    call delay
+
+	mov dh, 12
+	mov dl, 10
+	call set_cursor
+
+	mov si, Qremain
+	mov bl, 15
+	call print_string
+
+	mov ah, 0
+	int 16h
+
+	ret
+
 start:
     xor ax, ax
     mov ds, ax
@@ -342,6 +439,8 @@ start:
 	; mov bh, 0     
 	; mov bl, 1   
 	; int 10h	
+
+	jmp PERGUNTACOR
 
 PEGANOME:
 
@@ -753,5 +852,58 @@ TELA_QUASE4:
 	ret
 
 PERGUNTA5:
+
+PERGUNTACOR:
+	pop ax
+
+	mov ah, 0
+	mov al, 13
+    int 10h
+
+	; Colocando o cursor de escrita da tela na posição certa
+	mov dh, 07h
+	mov dl, 9h
+	call set_cursor
+
+	; Printando pergunta
+    mov si, QCOR
+	mov bl, 15
+    call print_string
+
+
+	mov dh, 17h
+	mov dl, 0
+	call set_cursor
+
+	; Printando "Resposta: "
+	mov si, QVOTO
+	mov bl, 15
+	call print_string_nobreak
+
+	; Salvando a leitura da entrada na pilha até apertarem enter
+	call get_string_mem
+
+	mov ax, PERGUNTACOR
+	push ax
+
+	mov si, VERMELHO
+	mov cx, 0
+	call compare_input_memory
+	
+	cmp cx, 0
+	je TELA_NOT_IMPOSTOR
+
+	; Movemos ao ponteiro de primeira string da comparação pra a primeira resposta (R1), e setamos o contador de erros para 0 (cx)
+	; e então chamamos a função de comparação entre a string de si e a string em (Entrada)
+	mov si, R4
+	mov cx, 0
+	call compare_input_memory
+	
+	cmp cx, 1; Se cx = 3, não são suficientemente iguais
+	jg TELA_ERRADO
+	cmp cx, 0
+	je PERGUNTA5
+	jmp TELA_QUASE
+	
 
 jmp $
