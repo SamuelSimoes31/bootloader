@@ -992,9 +992,80 @@ PERGUNTA6:
 	cmp cx, 1; Se cx = 3, não são suficientemente iguais
 	jg TELA_ERRADO
 	cmp cx, 0
-	je PERGUNTACOR
+	je PERGUNTA7
 	jmp TELA_QUASE6
 TELA_QUASE6:
+	mov ah, 0
+	mov al, 13
+    int 10h
+
+	mov dh, 10
+	mov dl, 12
+	call set_cursor
+
+	mov si, Quase6
+	mov bl, 0eh
+	call print_string
+
+	mov ah, 0
+	int 16h
+
+	ret
+
+PERGUNTA7:
+	
+	pop ax
+
+	mov ah, 0
+	mov al, 13
+    int 10h
+
+	xor cx, cx
+
+	.LOOP7:
+		; Colocando o cursor de escrita da tela na posição certa
+		mov dh, 05h
+		mov dl, 8
+		call set_cursor
+
+		; Printando pergunta
+		mov si, Q7_0
+		mov bl, 15
+		call print_string
+		inc cx
+		cmp cx, 7
+		jl .LOOP7
+	
+	
+	; Setando cursor para Resposta
+	mov dh, 17h
+	mov dl, 0
+	call set_cursor
+
+	; Printando "Resposta: "
+	mov si, Resposta
+	mov bl, 15
+	call print_string_nobreak
+
+	; Salvando a leitura da entrada na pilha até apertarem enter
+	call get_string_mem
+
+	mov ax, PERGUNTA6
+	push ax
+
+	; Movemos ao ponteiro de primeira string da comparação pra a sexta resposta (R6), e setamos o contador de erros para 0 (cx)
+	; e então chamamos a função de comparação entre a string de si e a string em (Entrada)
+	mov si, R6
+	mov cx, 0
+	call compare_input_memory
+	
+	cmp cx, 1; Se cx = 3, não são suficientemente iguais
+	jg TELA_ERRADO
+	cmp cx, 0
+	je PERGUNTACOR
+	jmp TELA_QUASE6
+	
+TELA_QUASE7:
 	mov ah, 0
 	mov al, 13
     int 10h
