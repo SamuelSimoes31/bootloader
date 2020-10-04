@@ -44,7 +44,11 @@ data:
 	QCOR db 'Ha 1 impostor entre nos', 0
 	QVOTO db 'SEU VOTO: ', 0
 	Qnot db ' nao era o Impostor', 0
-	Qremain db '1 impostor restante', 0
+	Qyes db ' era o Impostor', 0
+	Qremain db 'impostor restante', 0
+	Q1imp db '1 ',0
+	Q0imp db '0 ',0
+	BoolImp db 0
 
 	VERMELHO db 'VERMELHO', 0
 	AZUL db 'AZUL', 0
@@ -361,24 +365,47 @@ TELA_NOT_IMPOSTOR:
 	; int 10h	
 
 	mov dh, 10
-	mov dl, 7
+	mov dl, 7   ;lembrar de ajustar o dl para cada cor depois
 	call set_cursor
 
 	mov si, Entrada
 	mov bl, 15
 	call print_string_lento
 
-	mov si, Qnot
-	mov bl, 15
-	call print_string_lento
+	mov cl, byte[BoolImp]
+	cmp cl, 0
+	jne .EH_ELE
+		mov si, Qnot
+		mov bl, 15
+		call print_string_lento
 
-	mov dx, 16000
-    call delay
+		mov dx, 16000
+		call delay
 
-	mov dh, 12
-	mov dl, 10
-	call set_cursor
+		mov dh, 12
+		mov dl, 10
+		call set_cursor
 
+		mov si, Q1imp
+		mov bl, 15
+		call print_string_nobreak
+		jmp .end
+	.EH_ELE:
+		mov si, Qyes
+		mov bl, 15
+		call print_string_lento
+
+		mov dx, 16000
+		call delay
+
+		mov dh, 12
+		mov dl, 10
+		call set_cursor
+
+		mov si, Q0imp
+		mov bl, 15
+		call print_string_nobreak		
+	.end:
 	mov si, Qremain
 	mov bl, 15
 	call print_string
@@ -971,26 +998,36 @@ PERGUNTACOR:
 	mov cx, 0
 	call compare_input_memory
 	cmp cx, 0
-	; jne .NOT_IMPOSTOR
+	jne .CIANO
 	mov bl, 6 ; MARROM
-	jmp .NOT_IMPOSTOR
+	; jmp .NOT_IMPOSTOR
 
 	.NOT_IMPOSTOR:
 	call TELA_EJECTED
-	je TELA_NOT_IMPOSTOR	
+	je TELA_NOT_IMPOSTOR
 
-
-	; Movemos ao ponteiro de primeira string da comparação pra a primeira resposta (R1), e setamos o contador de erros para 0 (cx)
-	; e então chamamos a função de comparação entre a string de si e a string em (Entrada)
-	mov si, R4
+	.CIANO:
+	mov si, CIANO
 	mov cx, 0
 	call compare_input_memory
-	
+	cmp cx, 0
+	je .THE_IMPOSTOR
+
+	.ERRADO:
 	cmp cx, 1; Se cx = 3, não são suficientemente iguais
 	jg TELA_ERRADO
 	cmp cx, 0
 	je PERGUNTA5
 	jmp TELA_QUASE
 	
+	.THE_IMPOSTOR:
+	mov bl, 11 ; CIANO
+	call TELA_EJECTED
+	pop ax ;tirar o PERGUNTACOR: da pilha
+	mov byte[BoolImp], 1
+	call TELA_NOT_IMPOSTOR
+
+VICTORY:
+
 
 jmp $
