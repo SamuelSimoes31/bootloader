@@ -133,36 +133,15 @@ compare_input_memory:
 		ret
 
 print_string:
-	lodsb
-	cmp al,0
-	je .end
-
+	call print_string_nobreak
+	
 	mov ah, 0eh
-	; mov bl, 15 Pode escolher a cor antes de chamar a função
+	mov al, 0xd
+	int 10h
+	mov al, 0xa
 	int 10h
 
-	mov dx, 0
-	.delay_print:
-	inc dx
-	mov cx, 0
-		.time:
-			; inc cx
-			; cmp cx, 65535
-			cmp cx, 0
-			jne .time
-
-	cmp dx, 1000
-	jne .delay_print
-
-	jmp print_string
-
-	.end:
-		mov ah, 0eh
-		mov al, 0xd
-		int 10h
-		mov al, 0xa
-		int 10h
-		ret
+	ret
 
 print_string_nobreak:
 	; Mesmo que o printstring, mas no end não é printado break, logo o ponteiro de escrita continua na mesma linha
@@ -174,18 +153,18 @@ print_string_nobreak:
 	; mov bl, 15 Pode escolher a cor antes de chamar a função
 	int 10h
 
-	mov dx, 0
-	.delay_print:
-	inc dx
-	mov cx, 0
-		.time:
-			; inc cx
-			; cmp cx, 65535
-			cmp cx, 0
-			jne .time
+	; mov dx, 0
+	; .delay_print:
+	; inc dx
+	; mov cx, 0
+	; 	.time:
+	; 		; inc cx
+	; 		; cmp cx, 65535
+	; 		cmp cx, 0
+	; 		jne .time
 
-	cmp dx, 1000
-	jne .delay_print
+	; cmp dx, 1000
+	; jne .delay_print
 
 	jmp print_string_nobreak
 
@@ -203,14 +182,6 @@ delay:
 
 	cmp dx, 0
 	jne delay
-ret
-
-endl:
-    mov ah, 0eh
-    mov al, 0xd
-    int 10h
-    mov al, 0xa
-    int 10h
 ret
 
 print_string_lento:
