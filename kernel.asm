@@ -50,7 +50,7 @@ data:
 	AZUL db 'AZUL', 0
 	VERDE db 'VERDE', 0
 	ROSA db 'ROSA', 0
-	LARANJA db 'LARANJA', 0
+	; LARANJA db 'LARANJA', 0
 	AMARELO db 'AMARELO', 0
 	CINZA db 'CINZA', 0
 	BRANCO db 'BRANCO', 0
@@ -193,7 +193,7 @@ print_string_lento:
 	; mov bl, 0ah
 	int 10h
 
-	mov dx, 4000
+	mov dx, 3000
     call delay
 
 	jmp print_string_lento
@@ -386,7 +386,44 @@ TELA_NOT_IMPOSTOR:
 	mov ah, 0
 	int 16h
 
+	; mov dx, 80000
+    ; call delay
+
 	ret
+
+TELA_EJECTED:
+	mov cx, 0
+	push cx
+	
+	.LOOP:	
+	;limpa tela
+	mov ah, 0
+	mov al, 13
+    int 10h
+
+	mov dh, 12
+	mov dl, cl
+	call set_cursor
+
+	mov ah, 0eh
+	mov al, '@'
+	int 10h
+
+	mov dx, 2000
+    call delay
+
+	pop cx ;resgata cl
+	inc cx
+	cmp cx, 41
+	je .end
+	push cx ;guardar cl
+	jmp .LOOP
+
+	.end:
+	; mov ah, 0
+	; int 16h
+
+ret 
 
 start:
     xor ax, ax
@@ -857,12 +894,91 @@ PERGUNTACOR:
 	mov ax, PERGUNTACOR
 	push ax
 
+	.VERMELHO:
 	mov si, VERMELHO
 	mov cx, 0
 	call compare_input_memory
-	
 	cmp cx, 0
-	je TELA_NOT_IMPOSTOR
+	jne .AZUL
+	mov bl, 4 ; vermelho
+	jmp .NOT_IMPOSTOR
+
+	.AZUL:
+	mov si, AZUL
+	mov cx, 0
+	call compare_input_memory
+	cmp cx, 0
+	jne .VERDE
+	mov bl, 1 ; AZUL
+	jmp .NOT_IMPOSTOR
+	
+	.VERDE:
+	mov si, VERDE
+	mov cx, 0
+	call compare_input_memory
+	cmp cx, 0
+	jne .ROSA
+	mov bl, 2 ; VERDE
+	jmp .NOT_IMPOSTOR
+
+	.ROSA:
+	mov si, ROSA
+	mov cx, 0
+	call compare_input_memory
+	cmp cx, 0
+	jne .AMARELO
+	mov bl, 13 ; ROSA
+	jmp .NOT_IMPOSTOR
+
+	.AMARELO:
+	mov si, AMARELO
+	mov cx, 0
+	call compare_input_memory
+	cmp cx, 0
+	jne .CINZA
+	mov bl, 14 ; AMARELO
+	jmp .NOT_IMPOSTOR
+
+	.CINZA:
+	mov si, CINZA
+	mov cx, 0
+	call compare_input_memory
+	cmp cx, 0
+	jne .BRANCO
+	mov bl, 7 ; CINZA
+	jmp .NOT_IMPOSTOR
+
+	.BRANCO:
+	mov si, BRANCO
+	mov cx, 0
+	call compare_input_memory
+	cmp cx, 0
+	jne .ROXO
+	mov bl, 15 ; BRANCO
+	jmp .NOT_IMPOSTOR
+
+	.ROXO:
+	mov si, ROXO
+	mov cx, 0
+	call compare_input_memory
+	cmp cx, 0
+	jne .MARROM
+	mov bl, 5 ; ROXO
+	jmp .NOT_IMPOSTOR
+
+	.MARROM:
+	mov si, MARROM
+	mov cx, 0
+	call compare_input_memory
+	cmp cx, 0
+	; jne .NOT_IMPOSTOR
+	mov bl, 6 ; MARROM
+	jmp .NOT_IMPOSTOR
+
+	.NOT_IMPOSTOR:
+	call TELA_EJECTED
+	je TELA_NOT_IMPOSTOR	
+
 
 	; Movemos ao ponteiro de primeira string da comparação pra a primeira resposta (R1), e setamos o contador de erros para 0 (cx)
 	; e então chamamos a função de comparação entre a string de si e a string em (Entrada)
