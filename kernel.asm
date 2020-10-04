@@ -53,7 +53,7 @@ data:
 	Q7_0 db 'Polones', 0
 	R7 db '0', 0
 	I7_0 db 'Poloneses', 0
-	I7_1 db 'Sete', 0
+	I7_1 db 'SETE', 0
 	I7_2 db '7', 0
 	Quase7_0 db 'Quantos?', 0
 	Quase7_1 db 'Sete o que?', 0
@@ -1059,6 +1059,9 @@ PERGUNTA7:
 	; Salvando a leitura da entrada na pilha até apertarem enter
 	call get_string_mem
 
+	mov ax, PERGUNTA7
+	push ax
+
 	mov si, I7_0
 	mov cx, 0
 	call compare_input_memory
@@ -1079,9 +1082,6 @@ PERGUNTA7:
 	
 	cmp cx, 0
 	je TELA_QUASE7_1
-
-	mov ax, PERGUNTA7
-	push ax
 
 	; Movemos ao ponteiro de primeira string da comparação pra a sexta resposta (R6), e setamos o contador de erros para 0 (cx)
 	; e então chamamos a função de comparação entre a string de si e a string em (Entrada)
