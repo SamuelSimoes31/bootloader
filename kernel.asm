@@ -50,6 +50,28 @@ data:
 	I6 db 0
 	Quase6 db 'Andorinha maromba, ein?', 0
 
+	QCOR db 'Ha 1 impostor entre nos', 0
+	QVOTO db 'SEU VOTO: ', 0
+	Qnot db ' nao era o Impostor', 0
+	Qyes db ' era o Impostor', 0
+	Qremain db 'impostor restante', 0
+	Q1imp db '1 ',0
+	Q0imp db '0 ',0
+	BoolImp db 0
+
+	VERMELHO db 'VERMELHO', 0
+	AZUL db 'AZUL', 0
+	VERDE db 'VERDE', 0
+	ROSA db 'ROSA', 0
+	; LARANJA db 'LARANJA', 0
+	AMARELO db 'AMARELO', 0
+	CINZA db 'CINZA', 0
+	BRANCO db 'BRANCO', 0
+	ROXO db 'ROXO', 0
+	MARROM db 'MARROM', 0
+	CIANO db 'CIANO', 0
+	LIMAO db 'VERDE CLARO', 0
+
 	Entrada times 101 db 0
 	Nome times 101 db 0
 
@@ -124,36 +146,15 @@ compare_input_memory:
 		ret
 
 print_string:
-	lodsb
-	cmp al,0
-	je .end
-
+	call print_string_nobreak
+	
 	mov ah, 0eh
-	; mov bl, 15 Pode escolher a cor antes de chamar a função
+	mov al, 0xd
+	int 10h
+	mov al, 0xa
 	int 10h
 
-	mov dx, 0
-	.delay_print:
-	inc dx
-	mov cx, 0
-		.time:
-			; inc cx
-			; cmp cx, 65535
-			cmp cx, 0
-			jne .time
-
-	cmp dx, 1000
-	jne .delay_print
-
-	jmp print_string
-
-	.end:
-		mov ah, 0eh
-		mov al, 0xd
-		int 10h
-		mov al, 0xa
-		int 10h
-		ret
+	ret
 
 print_string_nobreak:
 	; Mesmo que o printstring, mas no end não é printado break, logo o ponteiro de escrita continua na mesma linha
@@ -165,24 +166,55 @@ print_string_nobreak:
 	; mov bl, 15 Pode escolher a cor antes de chamar a função
 	int 10h
 
-	mov dx, 0
-	.delay_print:
-	inc dx
-	mov cx, 0
-		.time:
-			; inc cx
-			; cmp cx, 65535
-			cmp cx, 0
-			jne .time
+	; mov dx, 0
+	; .delay_print:
+	; inc dx
+	; mov cx, 0
+	; 	.time:
+	; 		; inc cx
+	; 		; cmp cx, 65535
+	; 		cmp cx, 0
+	; 		jne .time
 
-	cmp dx, 1000
-	jne .delay_print
+	; cmp dx, 1000
+	; jne .delay_print
 
 	jmp print_string_nobreak
 
 	.end:
 		; Única mudança
 		ret
+
+delay:
+	dec dx
+	mov cx, 0
+		.time:
+			inc cx
+			cmp cx, 10000
+			jne .time
+
+	cmp dx, 0
+	jne delay
+ret
+
+print_string_lento:
+	lodsb
+	cmp al,0
+	je end
+
+	mov ah, 0eh
+	; mov bl, 0ah
+	int 10h
+
+	mov dx, 3000
+    call delay
+
+	jmp print_string_lento
+
+    end:
+	; call endl
+ret
+
 
 ; Função que lê caracteres da entrada e os salvam no espaço de memória (Entrada)
 get_string_mem:
@@ -329,6 +361,106 @@ TELA_ERRADO:
 
 	ret
 
+TELA_NOT_IMPOSTOR:
+
+	mov ah, 0
+	mov al, 13
+    int 10h
+
+	; Muda cor do background
+	; mov ah, 0xb  
+	; mov bh, 0    
+	; mov bl, 04h  
+	; int 10h	
+
+	mov dh, 10
+	mov dl, 7   ;lembrar de ajustar o dl para cada cor depois
+	call set_cursor
+
+	mov si, Entrada
+	mov bl, 15
+	call print_string_lento
+
+	mov cl, byte[BoolImp]
+	cmp cl, 0
+	jne .EH_ELE
+		mov si, Qnot
+		mov bl, 15
+		call print_string_lento
+
+		mov dx, 16000
+		call delay
+
+		mov dh, 12
+		mov dl, 10
+		call set_cursor
+
+		mov si, Q1imp
+		mov bl, 15
+		call print_string_nobreak
+		jmp .end
+	.EH_ELE:
+		mov si, Qyes
+		mov bl, 15
+		call print_string_lento
+
+		mov dx, 16000
+		call delay
+
+		mov dh, 12
+		mov dl, 10
+		call set_cursor
+
+		mov si, Q0imp
+		mov bl, 15
+		call print_string_nobreak		
+	.end:
+	mov si, Qremain
+	mov bl, 15
+	call print_string
+
+	mov ah, 0
+	int 16h
+
+	; mov dx, 80000
+    ; call delay
+
+	ret
+
+TELA_EJECTED:
+	mov cx, 0
+	push cx
+	
+	.LOOP:	
+	;limpa tela
+	mov ah, 0
+	mov al, 13
+    int 10h
+
+	mov dh, 12
+	mov dl, cl
+	call set_cursor
+
+	mov ah, 0eh
+	mov al, '@'
+	int 10h
+
+	mov dx, 2000
+    call delay
+
+	pop cx ;resgata cl
+	inc cx
+	cmp cx, 41
+	je .end
+	push cx ;guardar cl
+	jmp .LOOP
+
+	.end:
+	; mov ah, 0
+	; int 16h
+
+ret 
+
 start:
     xor ax, ax
     mov ds, ax
@@ -351,6 +483,8 @@ start:
 	; mov bh, 0     
 	; mov bl, 1   
 	; int 10h	
+
+	;jmp PERGUNTACOR
 
 PEGANOME:
 
@@ -877,5 +1011,143 @@ TELA_QUASE6:
 	int 16h
 
 	ret
+
+PERGUNTACOR:
+	pop ax
+
+	mov ah, 0
+	mov al, 13
+    int 10h
+
+	; Colocando o cursor de escrita da tela na posição certa
+	mov dh, 07h
+	mov dl, 9h
+	call set_cursor
+
+	; Printando pergunta
+    mov si, QCOR
+	mov bl, 15
+    call print_string
+
+
+	mov dh, 17h
+	mov dl, 0
+	call set_cursor
+
+	; Printando "Resposta: "
+	mov si, QVOTO
+	mov bl, 15
+	call print_string_nobreak
+
+	; Salvando a leitura da entrada na pilha até apertarem enter
+	call get_string_mem
+
+	mov ax, PERGUNTACOR
+	push ax
+
+	.VERMELHO:
+	mov si, VERMELHO
+	mov cx, 0
+	call compare_input_memory
+	cmp cx, 0
+	jne .AZUL
+	mov bl, 4 ; vermelho
+	jmp .NOT_IMPOSTOR
+
+	.AZUL:
+	mov si, AZUL
+	mov cx, 0
+	call compare_input_memory
+	cmp cx, 0
+	jne .VERDE
+	mov bl, 1 ; AZUL
+	jmp .NOT_IMPOSTOR
+	
+	.VERDE:
+	mov si, VERDE
+	mov cx, 0
+	call compare_input_memory
+	cmp cx, 0
+	jne .ROSA
+	mov bl, 2 ; VERDE
+	jmp .NOT_IMPOSTOR
+
+	.ROSA:
+	mov si, ROSA
+	mov cx, 0
+	call compare_input_memory
+	cmp cx, 0
+	jne .AMARELO
+	mov bl, 13 ; ROSA
+	jmp .NOT_IMPOSTOR
+
+	.AMARELO:
+	mov si, AMARELO
+	mov cx, 0
+	call compare_input_memory
+	cmp cx, 0
+	jne .CINZA
+	mov bl, 14 ; AMARELO
+	jmp .NOT_IMPOSTOR
+
+	.CINZA:
+	mov si, CINZA
+	mov cx, 0
+	call compare_input_memory
+	cmp cx, 0
+	jne .BRANCO
+	mov bl, 7 ; CINZA
+	jmp .NOT_IMPOSTOR
+
+	.BRANCO:
+	mov si, BRANCO
+	mov cx, 0
+	call compare_input_memory
+	cmp cx, 0
+	jne .ROXO
+	mov bl, 15 ; BRANCO
+	jmp .NOT_IMPOSTOR
+
+	.ROXO:
+	mov si, ROXO
+	mov cx, 0
+	call compare_input_memory
+	cmp cx, 0
+	jne .MARROM
+	mov bl, 5 ; ROXO
+	jmp .NOT_IMPOSTOR
+
+	.MARROM:
+	mov si, MARROM
+	mov cx, 0
+	call compare_input_memory
+	cmp cx, 0
+	jne .CIANO
+	mov bl, 6 ; MARROM
+	; jmp .NOT_IMPOSTOR
+
+	.NOT_IMPOSTOR:
+	call TELA_EJECTED
+	je TELA_NOT_IMPOSTOR
+
+	.CIANO:
+	mov si, CIANO
+	mov cx, 0
+	call compare_input_memory
+	cmp cx, 0
+	je .THE_IMPOSTOR
+
+	.ERRADO:
+	jmp TELA_ERRADO
+
+	.THE_IMPOSTOR:
+	mov bl, 11 ; CIANO
+	call TELA_EJECTED
+	pop ax ;tirar o PERGUNTACOR: da pilha
+	mov byte[BoolImp], 1
+	call TELA_NOT_IMPOSTOR
+
+VICTORY:
+
 
 jmp $
