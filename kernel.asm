@@ -54,8 +54,10 @@ data:
 	R7 db '0', 0
 	I7_0 db 'Poloneses', 0
 	I7_1 db 'Sete', 0
-	I7_1 db '7', 0
-	Quase7 db 'Andorinha maromba, ein?', 0
+	I7_2 db '7', 0
+	Quase7_0 db 'Quantos?', 0
+	Quase7_1 db 'Sete o que?', 0
+	Quase7_2 db 'Ta quase', 0
 
 	QCOR db 'Ha 1 impostor entre nos', 0
 	QVOTO db 'SEU VOTO: ', 0
@@ -1057,6 +1059,27 @@ PERGUNTA7:
 	; Salvando a leitura da entrada na pilha até apertarem enter
 	call get_string_mem
 
+	mov si, I7_0
+	mov cx, 0
+	call compare_input_memory
+	
+	cmp cx, 0
+	je TELA_QUASE7_0
+
+	mov si, I7_1
+	mov cx, 0
+	call compare_input_memory
+	
+	cmp cx, 0
+	je TELA_QUASE7_1
+
+	mov si, I7_2
+	mov cx, 0
+	call compare_input_memory
+	
+	cmp cx, 0
+	je TELA_QUASE7_1
+
 	mov ax, PERGUNTA7
 	push ax
 
@@ -1070,9 +1093,9 @@ PERGUNTA7:
 	jg TELA_ERRADO
 	cmp cx, 0
 	je PERGUNTACOR
-	jmp TELA_QUASE7
+	jmp TELA_QUASE7_2
 	
-TELA_QUASE7:
+TELA_QUASE7_0:
 	mov ah, 0
 	mov al, 13
     int 10h
@@ -1081,7 +1104,7 @@ TELA_QUASE7:
 	mov dl, 12
 	call set_cursor
 
-	mov si, Quase6
+	mov si, Quase7_0
 	mov bl, 0eh
 	call print_string
 
@@ -1089,6 +1112,43 @@ TELA_QUASE7:
 	int 16h
 
 	ret
+TELA_QUASE7_1:
+	mov ah, 0
+	mov al, 13
+    int 10h
+
+	mov dh, 10
+	mov dl, 12
+	call set_cursor
+
+	mov si, Quase7_1
+	mov bl, 0eh
+	call print_string
+
+	mov ah, 0
+	int 16h
+
+	ret
+TELA_QUASE7_2:
+	mov ah, 0
+	mov al, 13
+    int 10h
+
+	mov dh, 10
+	mov dl, 12
+	call set_cursor
+
+	mov si, Quase7_2
+	mov bl, 0eh
+	call print_string
+
+	mov ah, 0
+	int 16h
+
+	ret
+
+
+
 
 PERGUNTACOR:
 	pop ax
