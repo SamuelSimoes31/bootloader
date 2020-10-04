@@ -1014,12 +1014,8 @@ PERGUNTACOR:
 	je .THE_IMPOSTOR
 
 	.ERRADO:
-	cmp cx, 1; Se cx = 3, não são suficientemente iguais
-	jg TELA_ERRADO
-	cmp cx, 0
-	je PERGUNTA5
-	jmp TELA_QUASE
-	
+	jmp TELA_ERRADO
+
 	.THE_IMPOSTOR:
 	mov bl, 11 ; CIANO
 	call TELA_EJECTED
