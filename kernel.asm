@@ -861,7 +861,7 @@ PERGUNTA6:
 	je PERGUNTA6
 	jmp TELA_QUASE6
 
-TELA_QUASE4:
+TELA_QUASE6:
 	mov ah, 0
 	mov al, 13
     int 10h
