@@ -51,7 +51,7 @@ data:
 	Quase6 db 'Andorinha maromba, ein?', 0
 
 	Q7_0 db 'Polones', 0
-	R7 db '0', 0
+	R7 db 'CALCOGENIOS', 0
 	I7_0 db 'POLONESES', 0
 	I7_1 db 'SETE', 0
 	I7_2 db '7', 0
@@ -1030,7 +1030,7 @@ PERGUNTA7:
     int 10h
 
 	;xor cx, cx
-	mov cx, 6
+	mov cx, 7
 	
 	mov dh, 03h
 
@@ -1044,9 +1044,9 @@ PERGUNTA7:
 		mov bl, 15
 		call print_string
 
-		; Interrupção de teclado para aguardar uma tecla
-		mov ah, 0
-		int 16h
+		; Interrupção de teclado para aguardar uma tecla -> tirei pq é um saco apertar enter 8x
+		;mov ah, 0
+		;int 16h
 
 		add dh, 2
 		dec cx
