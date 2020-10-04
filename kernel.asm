@@ -829,7 +829,7 @@ PERGUNTA6:
 	call set_cursor
 
 	; Printando pergunta
-    mov si, Q6
+    mov si, Q6_0
 	mov bl, 15
     call print_string
 	
