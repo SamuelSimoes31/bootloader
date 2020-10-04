@@ -859,7 +859,24 @@ PERGUNTA6:
 	jg TELA_ERRADO
 	cmp cx, 0
 	je PERGUNTA6
-	jmp TELA_QUASE
+	jmp TELA_QUASE6
 
+TELA_QUASE4:
+	mov ah, 0
+	mov al, 13
+    int 10h
+
+	mov dh, 10
+	mov dl, 12
+	call set_cursor
+
+	mov si, Quase6
+	mov bl, 0eh
+	call print_string
+
+	mov ah, 0
+	int 16h
+
+	ret
 
 jmp $
