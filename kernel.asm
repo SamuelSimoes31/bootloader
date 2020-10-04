@@ -52,7 +52,7 @@ data:
 
 	Q7_0 db 'Polones', 0
 	R7 db '0', 0
-	I7_0 db 'Poloneses', 0
+	I7_0 db 'POLONESES', 0
 	I7_1 db 'SETE', 0
 	I7_2 db '7', 0
 	Quase7_0 db 'Quantos?', 0
@@ -1029,7 +1029,8 @@ PERGUNTA7:
 	mov al, 13
     int 10h
 
-	xor cx, cx
+	;xor cx, cx
+	mov cx, 7
 
 	.LOOP7:
 		; Colocando o cursor de escrita da tela na posição certa
@@ -1041,9 +1042,9 @@ PERGUNTA7:
 		mov si, Q7_0
 		mov bl, 15
 		call print_string
-		inc cx
-		cmp cx, 7
-		jl .LOOP7
+		dec cx
+		cmp cx, 0
+		jne .LOOP7
 	
 	
 	; Setando cursor para Resposta
