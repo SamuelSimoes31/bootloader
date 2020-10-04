@@ -45,6 +45,11 @@ data:
 	Q5_1 db 'de uma andorinha sem carga? (em km/h)', 0
 	R5 db '32', 0
 
+	Q6_0 db 'E carregando um coco?', 0
+	R6 db '0', 0
+	I6 db 0
+	Quase6 db 'Andorinha maromba, ein?', 0
+
 	Entrada times 101 db 0
 	Nome times 101 db 0
 
@@ -811,4 +816,50 @@ PERGUNTA5:
 	jmp TELA_QUASE
 
 PERGUNTA6:
+	
+	pop ax
+
+	mov ah, 0
+	mov al, 13
+    int 10h
+
+	; Colocando o cursor de escrita da tela na posição certa
+	mov dh, 05h
+	mov dl, 8
+	call set_cursor
+
+	; Printando pergunta
+    mov si, Q6
+	mov bl, 15
+    call print_string
+	
+	; Setando cursor para Resposta
+	mov dh, 17h
+	mov dl, 0
+	call set_cursor
+
+	; Printando "Resposta: "
+	mov si, Resposta
+	mov bl, 15
+	call print_string_nobreak
+
+	; Salvando a leitura da entrada na pilha até apertarem enter
+	call get_string_mem
+
+	mov ax, PERGUNTA6
+	push ax
+
+	; Movemos ao ponteiro de primeira string da comparação pra a sexta resposta (R6), e setamos o contador de erros para 0 (cx)
+	; e então chamamos a função de comparação entre a string de si e a string em (Entrada)
+	mov si, R6
+	mov cx, 0
+	call compare_input_memory
+	
+	cmp cx, 1; Se cx = 3, não são suficientemente iguais
+	jg TELA_ERRADO
+	cmp cx, 0
+	je PERGUNTA6
+	jmp TELA_QUASE
+
+
 jmp $
