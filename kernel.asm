@@ -1034,7 +1034,7 @@ PERGUNTA7:
 
 	.LOOP7:
 		; Colocando o cursor de escrita da tela na posição certa
-		mov dh, 05h
+		mov dh, 03h
 		mov dl, 8
 		call set_cursor
 
@@ -1042,9 +1042,15 @@ PERGUNTA7:
 		mov si, Q7_0
 		mov bl, 15
 		call print_string
+		; Interrupção de teclado para aguardar uma tecla
+		mov ah, 0
+		int 16h
+
+		add dh, 2
 		dec cx
 		cmp cx, 0
 		jne .LOOP7
+
 	
 	
 	; Setando cursor para Resposta
