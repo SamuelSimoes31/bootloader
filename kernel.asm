@@ -50,6 +50,13 @@ data:
 	I6 db 0
 	Quase6 db 'Andorinha maromba, ein?', 0
 
+	Q7_0 db 'Polones', 0
+	R7 db '0', 0
+	I7_0 db 'Poloneses', 0
+	I7_1 db 'Sete', 0
+	I7_1 db '7', 0
+	Quase7 db 'Andorinha maromba, ein?', 0
+
 	QCOR db 'Ha 1 impostor entre nos', 0
 	QVOTO db 'SEU VOTO: ', 0
 	Qnot db ' nao era o Impostor', 0
@@ -1050,12 +1057,12 @@ PERGUNTA7:
 	; Salvando a leitura da entrada na pilha até apertarem enter
 	call get_string_mem
 
-	mov ax, PERGUNTA6
+	mov ax, PERGUNTA7
 	push ax
 
 	; Movemos ao ponteiro de primeira string da comparação pra a sexta resposta (R6), e setamos o contador de erros para 0 (cx)
 	; e então chamamos a função de comparação entre a string de si e a string em (Entrada)
-	mov si, R6
+	mov si, R7
 	mov cx, 0
 	call compare_input_memory
 	
@@ -1063,7 +1070,7 @@ PERGUNTA7:
 	jg TELA_ERRADO
 	cmp cx, 0
 	je PERGUNTACOR
-	jmp TELA_QUASE6
+	jmp TELA_QUASE7
 	
 TELA_QUASE7:
 	mov ah, 0
