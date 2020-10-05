@@ -968,7 +968,7 @@ PERGUNTA6:
 
 	; Colocando o cursor de escrita da tela na posição certa
 	mov dh, 05h
-	mov dl, 8
+	mov dl, 10
 	call set_cursor
 
 	; Printando pergunta
@@ -1009,7 +1009,7 @@ TELA_QUASE6:
     int 10h
 
 	mov dh, 10
-	mov dl, 12
+	mov dl, 8
 	call set_cursor
 
 	mov si, Quase6
@@ -1036,7 +1036,7 @@ PERGUNTA7:
 
 	.LOOP7:
 		; Colocando o cursor de escrita da tela na posição certa
-		mov dl, 8
+		mov dl, 17
 		call set_cursor
 
 		; Printando pergunta
@@ -1110,7 +1110,7 @@ TELA_QUASE7_0:
     int 10h
 
 	mov dh, 10
-	mov dl, 12
+	mov dl, 16
 	call set_cursor
 
 	mov si, Quase7_0
@@ -1127,7 +1127,7 @@ TELA_QUASE7_1:
     int 10h
 
 	mov dh, 10
-	mov dl, 12
+	mov dl, 15
 	call set_cursor
 
 	mov si, Quase7_1
@@ -1144,7 +1144,7 @@ TELA_QUASE7_2:
     int 10h
 
 	mov dh, 10
-	mov dl, 12
+	mov dl, 16
 	call set_cursor
 
 	mov si, Quase7_2
