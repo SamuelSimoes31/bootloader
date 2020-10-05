@@ -47,7 +47,6 @@ data:
 
 	Q6_0 db 'E carregando um coco?', 0
 	R6 db '0', 0
-	I6 db 0
 	Quase6 db 'Andorinha maromba, ein?', 0
 
 	Q7_0 db 'Polones', 0
@@ -81,8 +80,23 @@ data:
 	CIANO db 'CIANO', 0
 	LIMAO db 'VERDE CLARO', 0
 
+	QU db '?emon ues o lauQ', 0
+	ErradoU_0 db 'Parabens', 0
+	ErradoU_1 db 'Voce errou o proprio nome', 0
+
 	Entrada times 101 db 0
 	Nome times 101 db 0
+
+	; jooj0 db
+	; jooj1 db
+	; jooj2 db
+	; jooj3 db
+	; jooj4 db
+	; jooj5 db
+	; jooj6 db
+	; jooj7 db
+	; jooj8 db
+	; jooj9 db
 
 set_cursor:
 	mov ah, 02h
@@ -91,6 +105,38 @@ set_cursor:
 	int 10h
 
 	ret
+
+compare_stack_memory:
+
+	pop dx
+	cld
+
+	.LOOP:
+
+		pop bx
+		lodsb
+		
+		cmp bl, al
+		je .CMP0
+
+		inc cx
+
+	.CLEARSTACK:
+		cmp bx, 0
+		je .PUSH0
+		pop bx
+		jmp .CLEARSTACK
+
+	.CMP0:
+		 cmp bx, 0
+		 je .PUSH0
+		 jmp .LOOP
+
+	.PUSH0:
+		push bx
+		push dx
+		ret
+
 
 ; Essa função recebe uma string no reg si e a compara à string em (Resposta), ao mesmo tempo permitindo uma margem de erro entre elas, localizada no reg cx
 ; O resultado é armazenado em cx, caso suficientemente iguais, cx = 1, no contrário, cx = 0
@@ -224,6 +270,84 @@ print_string_lento:
 	; call endl
 ret
 
+get_string_stack:
+	; Salvando o endereço de retorno da pilha no reg c
+	pop cx
+
+	.LOOP:
+		; Lendo caractere
+		mov ah, 0
+		int 16h
+
+		; Comparando com backspace para tratá-lo
+		cmp al, 0x8
+		je .BCKSPC
+
+		; Printando caractere
+		mov ah, 0xe
+		mov bl, 7
+		int 10h
+
+		cmp al, 'a'
+		jl .PUSHAX
+		cmp al, 'z'
+		jg .PUSHAX
+		sub al, 32
+
+		; Salvando caractere na pilha
+	.PUSHAX:
+		push ax
+
+		; Comparando com enter para terminar a leitura
+		cmp al, 13
+		jne .LOOP
+
+		; Removendo caractere do enter da pilha
+		pop ax
+
+		; Retornando o endereço de retorno à pilha a partir do reg c
+		push cx
+
+		mov ah, 0xe
+		mov al, 10
+		mov bl, 7
+		int 10h
+		
+		ret
+
+	; Tratando o backspace
+	.BCKSPC:
+		; Removendo o caractere da pilha mais recente
+		pop ax
+
+		; Caso o valor da pilha seja zero representa que pilha está vazia, logo pushamos o zero de volta e nada é feito
+		cmp al, 0
+		je .PUSH0
+
+		; Printando o backspace, que por si só apenas retorna o ponteiro de escrita em uma unidade, sem apagar nada
+		mov ah, 0xe
+		mov al, 0x8
+		mov bl, 7
+		int 10h
+
+		; Printando espaço, de modo que sobreescreva o caractere que o ponteiro de escrita aponta
+		mov ah, 0xe
+		mov al, ' '
+		mov bl, 7
+		int 10h
+
+		; Printando backspace novamente, para deixar o ponteiro de escrita apontando para o espaço que será ocupado pela próxima letra lida
+		mov ah, 0xe
+		mov al, 8
+		mov bl, 7
+		int 10h
+
+		; Retorno ao loop de leitura
+		jmp .LOOP
+
+	.PUSH0:
+		push 0
+		jmp .LOOP
 
 ; Função que lê caracteres da entrada e os salvam no espaço de memória (Entrada)
 get_string_mem:
@@ -347,7 +471,18 @@ TELA_ERRADO:
 	; mov bl, 04h  
 	; int 10h	
 
-	mov dh, 10
+	mov dh, 9
+	mov dl, 11
+	call set_cursor
+
+	mov si, Errado
+	mov bl, 04h
+	call print_string
+	
+	mov ah, 0
+	int 16h
+
+	mov dh, 11
 	mov dl, 11
 	call set_cursor
 
@@ -355,10 +490,7 @@ TELA_ERRADO:
 	mov bl, 04h
 	call print_string
 
-	mov ah, 0
-	int 16h
-
-	mov dh, 12
+	mov dh, 13
 	mov dl, 13
 	call set_cursor
 
@@ -998,11 +1130,12 @@ PERGUNTA6:
 	mov cx, 0
 	call compare_input_memory
 	
-	cmp cx, 1; Se cx = 3, não são suficientemente iguais
-	jg TELA_ERRADO
+	; cmp cx, 1; Se cx = 3, não são suficientemente iguais
+	; jg TELA_ERRADO
 	cmp cx, 0
 	je PERGUNTA7
-	jmp TELA_QUASE6
+	jg TELA_QUASE6
+
 TELA_QUASE6:
 	mov ah, 0
 	mov al, 13
@@ -1294,7 +1427,82 @@ PERGUNTACOR:
 	mov byte[BoolImp], 1
 	call TELA_NOT_IMPOSTOR
 
-VICTORY:
+ULTIMA_PERGUNTA:
+	mov ah, 0
+	mov al, 13
+    int 10h
 
+	; Colocando o cursor de escrita da tela na posição certa
+	mov dh, 05h
+	mov dl, 12
+	call set_cursor
+
+	; Printando primeira pergunta
+    mov si, QU
+	mov bl, 11
+    call print_string
+
+	mov dh, 17h
+	mov dl, 0
+	call set_cursor
+
+	; Printando "Resposta: "
+	mov si, Resposta
+	mov bl, 15
+	call print_string_nobreak
+
+	; Salvando a leitura da entrada na pilha até apertarem enter
+	call get_string_stack
+
+	; Movemos ao ponteiro de primeira string da comparação pra a primeira resposta (R1), e setamos o contador de erros para 0 (cx)
+	; e então chamamos a função de comparação entre a string de si e a string em (Entrada)
+	mov si, Nome
+	mov cx, 0
+	call compare_stack_memory
+
+	cmp cx, 0; Se cx = 3, não são suficientemente iguais
+	je VICTORY
+
+ULTIMA_TELA_ERRADA:
+	mov ah, 0
+	mov al, 13
+    int 10h
+
+	; Muda cor do background
+	; mov ah, 0xb  
+	; mov bh, 0    
+	; mov bl, 04h  
+	; int 10h	
+
+	mov dh, 10
+	mov dl, 16
+	call set_cursor
+
+	mov si, ErradoU_0
+	mov bl, 10
+	call print_string
+	
+	mov ah, 0
+	int 16h
+
+	mov ah, 0
+	mov al, 13
+	int 10h
+
+	mov dh, 12
+	mov dl, 8
+	call set_cursor
+
+	mov si, ErradoU_1
+	mov bl, 4
+	call print_string
+
+	mov ah, 0
+	int 16h
+
+	jmp ULTIMA_PERGUNTA
+
+VICTORY:
+	
 
 jmp $
