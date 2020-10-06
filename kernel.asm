@@ -109,6 +109,7 @@ data:
 	jooj8 db '@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@%/**************(@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@&***********************&@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@/************/@@@@@@@@#****/@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@/*****(@@@(***%@&//////%@@(@@@#&@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@&********#@@@#***@@%///////@@&@@@%/@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@(******************@@#///////@@%*****(@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@/*******************@@#///////@@#******%@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@(********************%@&//////#@@/*******@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@(********************/@@(////(@@(********%@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@&*@@(*********************/@@#///&@&*********(@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@%**#@@/**********************@@@(&@%**********&@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@/*****(@@#**********************/@@@%**********%@@@@@@@@@@@@@@@@@@@@@@@@@@@@#***********%@@&/*********************##**********#@@@@@@@@@@@@@@@@@@@@@@@@@&*****************/&@@@&*****************************#@@@@@@@@@@@@@@@@@@@@@@@%*************************(&@@@@@@@@@/******************@@@@@@@@@@@@@@@@@@@@@@/*********************************************************&@@@@@@@@@@@@@@@@@@@&%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%&@@@@@@@@@@@@', 0
 	; jooj9 db '@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@(/////////////#@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@//////////////////////#@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@(/////////////@@@@@@@@@(////@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@///////&@@@///(@@#/////(&@%&@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@%/////////&@@@///#@@///////%@@%@@@/@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@#//////////////////%@@///////#@@/////(@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@////////////////////#@@(//////%@@//////#@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@//////////////////////@@#/////(@@#///////&@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@&//////////////////////#@&/////%@&////////#@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@&(@@(//////////////////////%@@(//#@@(////////(@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@//(@@(//////////////////////(@@&%@@(/////////%@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@%/////@@&///////////////////////%@@@///////////@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@&/////////@@@///////////////////////&//////////(@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@(/////////////#@@@(//////////////////////////////@@@@@@@@@@@@@@@@@@@@@@@@@@@&/////////////////////@@@@@%////////////////////////@@@@@@@@@@@@@@@@@@@@@@@@@(/////////////////////////////(&@@@@%//////////////////@@@@@@@@@@@@@@@@@@@@@@(/////////////////////////////////////////////////////////@@@@@@@@@@@@@@@@@@@@&%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%&@@@@@@@@', 0
 
+;função que seta cursor
 set_cursor:
 	mov ah, 02h
 	mov al, 20h
@@ -117,6 +118,7 @@ set_cursor:
 
 	ret
 
+;função pra comparar o nome guardado na pilha
 compare_stack_memory:
 
 	pop dx
@@ -213,56 +215,58 @@ compare_input_memory:
 
 print_jooj:
 
-	push bx
+	push bx ;guardar valor de bl
 
-	mov dh, 0
+	mov dh, 0 ;seta cursor pro início
 	mov dl, 0
 	call set_cursor
 
-	push si
+	push si ;salva o endereço da última string jooj(frame atual) a ser printada
 	mov si, commonjooj
 	mov bl, 7
 	call print_string_nobreak
-	pop si
+	pop si ;joga de volta pra si o endereço do frame jooj a ser printado
 
 	.LOOP:
 
-		lodsb
+		lodsb	;enquanto a string não acabar
 		cmp al, 0
 		je .END
 
-		pop bx
-		push bx
+		pop bx ;pega de volta a cor atual guardada na inínio dessa função
+		push bx ;salva de novo para ter salvo a cor atual caso precise mudar quando encontrar @
 
-		cmp al, '@'
+		cmp al, '@' ;se encontrar arroba, muda a cor pra cinza claro
 		jne .PRINT
-		mov bl, 7
+		mov bl, 7 ;cinza 
 
 	.PRINT:
-		mov ah, 0xe
+		mov ah, 0xe ;imprime o caractere do frame atual com a cor setada
 		int 10h
 
 		jmp .LOOP
 
 	.END:
-		pop bx
-		ret
+		pop bx ;tira a cor salva do topo da pilha e bota em bl
+		ret ;retorna pra
 
 	
 
 print_string:
+	;printa a string e pula linha
 	call print_string_nobreak
 	
 	mov ah, 0eh
-	mov al, 0xd
+
+	mov al, 0xd	; \r
 	int 10h
-	mov al, 0xa
+	mov al, 0xa ; \n
 	int 10h
 
 	ret
 
 print_string_nobreak:
-	; Mesmo que o printstring, mas no end não é printado break, logo o ponteiro de escrita continua na mesma linha
+	; printa a string sem pular linha
 	lodsb
 	cmp al,0
 	je .end
@@ -271,25 +275,12 @@ print_string_nobreak:
 	; mov bl, 15 Pode escolher a cor antes de chamar a função
 	int 10h
 
-	; mov dx, 0
-	; .delay_print:
-	; inc dx
-	; mov cx, 0
-	; 	.time:
-	; 		; inc cx
-	; 		; cmp cx, 65535
-	; 		cmp cx, 0
-	; 		jne .time
-
-	; cmp dx, 1000
-	; jne .delay_print
-
 	jmp print_string_nobreak
 
 	.end:
-		; Única mudança
 		ret
 
+;função que conta em cx e dx pra dar delay. (tem setar o tempo em DX antes de chamar)
 delay:
 	dec dx
 	mov cx, 0
@@ -302,9 +293,10 @@ delay:
 	jne delay
 ret
 
+;
 print_string_lento:
 
-	push dx
+	push dx ;salva o valor de dx(tempo do delay) pra não perder quando usar o lodsb
 
 	.LOOP:
 
@@ -316,17 +308,17 @@ print_string_lento:
 	; mov bl, 0ah
 	int 10h
 
-	pop dx
-	push dx
+	pop dx ;pega o valor de dx
+	push dx ;bota de volta pra usar enqaunto não acabar o loop
     call delay
 
 	jmp .LOOP
 
     end:
-	pop dx
-	; call endl
+	pop dx ;tira o valor de dx da pilha pra poder retornar certinho
 ret
 
+;ir guardadno caracteres digitados na pilha (usado na última pergunta)
 get_string_stack:
 	; Salvando o endereço de retorno da pilha no reg c
 	pop cx
@@ -345,7 +337,7 @@ get_string_stack:
 		mov bl, 7
 		int 10h
 
-		cmp al, 'a'
+		cmp al, 'a' ;vê se é minusculo
 		jl .PUSHAX
 		cmp al, 'z'
 		jg .PUSHAX
@@ -366,7 +358,7 @@ get_string_stack:
 		push cx
 
 		mov ah, 0xe
-		mov al, 10
+		mov al, 10 ;\n
 		mov bl, 7
 		int 10h
 		
@@ -408,7 +400,7 @@ get_string_stack:
 
 ; Função que lê caracteres da entrada e os salvam no espaço de memória (Entrada)
 get_string_mem:
-	cld
+	cld ;limpa flag de leitura
 	mov di, Entrada
 
 get_nome:
@@ -493,33 +485,33 @@ return:
 
 TELA_QUASE:
 
-	mov ah, 0
+	mov ah, 0 ;limpa tela
 	mov al, 13
     int 10h
 
 	; Muda cor do background
 	mov ah, 0xb  
 	mov bh, 0    
-	mov bl, 0x1  
+	mov bl, 0x1  ;azul
 	int 10h	
 
 	mov dh, 10
 	mov dl, 17
 	call set_cursor
 
-	mov si, Quase
+	mov si, Quase ;imprime string de quase
 	mov bl, 0eh
 	mov cx, 6000
 	call print_string_lento
 
-	mov ah, 0
+	mov ah, 0 ;espera o enter
 	int 16h
 
 	ret
 
 TELA_ERRADO:
 
-	mov ah, 0
+	mov ah, 0 ;limpa tela
 	mov al, 13
     int 10h
 
@@ -533,7 +525,7 @@ TELA_ERRADO:
 	mov dl, 11
 	call set_cursor
 
-	mov si, Errado
+	mov si, Errado ;imprime string Errado
 	mov bl, 04h
 	mov cx, 2000
 	call print_string_lento
@@ -546,7 +538,7 @@ TELA_ERRADO:
 	call set_cursor
 
 	mov si, Entrada
-	mov bl, 04h
+	mov bl, 04h ;vermelho
 	mov cx, 3000
 	call print_string_lento
 
@@ -582,52 +574,52 @@ TELA_NOT_IMPOSTOR:
 	mov dl, 7   ;lembrar de ajustar o dl para cada cor depois
 	call set_cursor
 
-	mov si, Entrada
-	mov bl, 15
+	mov si, Entrada ;pegar o nome da cor digitada pela pessoa
+	mov bl, 15 		;branco
 	mov dx, 3000
-	call print_string_lento
+	call print_string_lento ;imprime só o nome da cor
 
-	mov cl, byte[BoolImp]
+	mov cl, byte[BoolImp] ;checa de BoolImp é      0-> não impostor    1-> impostor
 	cmp cl, 0
-	jne .EH_ELE
-		mov si, Qnot
+	jne .EH_ELE ;se for 0 segue
+		mov si, Qnot ;string de não
 		mov bl, 15
 		mov dx, 3000
 		call print_string_lento
 
-		mov dx, 16000
+		mov dx, 16000 ;dar um tempinho pra imprimir  string de restantes
 		call delay
 
 		mov dh, 12
 		mov dl, 10
 		call set_cursor
 
-		mov si, Q1imp
+		mov si, Q1imp ;"1 " .... restante
 		mov bl, 15
 		call print_string_nobreak
 		jmp .end
-	.EH_ELE:
+	.EH_ELE: ;se for 1
 		mov si, Qyes
 		mov bl, 15
 		mov dx, 3000
 		call print_string_lento
 
-		mov dx, 16000
+		mov dx, 16000 ;dar um tempinho pra imprimir  string de restantes
 		call delay
 
 		mov dh, 12
 		mov dl, 10
 		call set_cursor
 
-		mov si, Q0imp
+		mov si, Q0imp ;"0 " .... restante
 		mov bl, 15
 		call print_string_nobreak		
 	.end:
-	mov si, Qremain
+	mov si, Qremain ;string "impostor restante"
 	mov bl, 15
 	call print_string
 
-	mov ah, 0
+	mov ah, 0 ;espera apertar quaqluer tecla
 	int 16h
 
 	; mov dx, 80000
@@ -635,9 +627,10 @@ TELA_NOT_IMPOSTOR:
 
 	ret
 
+;animaçãozinha do @ voando
 TELA_EJECTED:
-	mov cx, 0
-	push cx
+	mov cx, 0 	;cx vai indicar a posição do cursor. Começando em 0
+	push cx 	;guardar valor de cx pq ele vai ser modificado em call delay
 	
 	.LOOP:	
 	;limpa tela
@@ -646,19 +639,19 @@ TELA_EJECTED:
     int 10h
 
 	mov dh, 12
-	mov dl, cl
+	mov dl, cl ;seta a posição do cursor pra que cl guarda
 	call set_cursor
 
-	mov ah, 0eh
+	mov ah, 0eh ;imprime o tripulante :v     a cor já foi definida antes de chamar TELA_EJECTED
 	mov al, '@'
 	int 10h
 
-	mov dx, 2000
+	mov dx, 2000 ;dá um temppjnho
     call delay
 
 	pop cx ;resgata cl
-	inc cx
-	cmp cx, 41
+	inc cx ;incrementa a posição do cursor
+	cmp cx, 41 ;última posição da tela (fora dela)
 	je .end
 	push cx ;guardar cl
 	jmp .LOOP
@@ -669,17 +662,13 @@ TELA_EJECTED:
 
 ret 
 
+; int main()
 start:
-    xor ax, ax
+    xor ax, ax ;limpa registradores
     mov ds, ax
     mov es, ax
     
     ;Código do projeto...
-
-    mov ax, 0
-    mov ds, ax
-
-	push ax;
 
     int 10h
 
@@ -692,11 +681,12 @@ start:
 	; mov bl, 1   
 	; int 10h	
 
-	; jmp ULTIMA_PERGUNTA
+	; jmp ULTIMA_PERGUNTA ; development hacks
 
+;primeira tela
 PEGANOME:
 
-	mov ah, 0
+	mov ah, 0 ;limpa tela
 	mov al, 13
     int 10h
 
@@ -730,6 +720,7 @@ PEGANOME:
 	mov di, Nome
 	call get_nome
 
+;já vi nomes melhores
 PRE1:
 
 	mov ah, 0
@@ -788,9 +779,10 @@ PERGUNTA1:
 	; Salvando a leitura da entrada na pilha até apertarem enter
 	call get_string_mem
 
-	mov ax, PERGUNTA1
+	mov ax, PERGUNTA1 ;salva o endereço do inínico pra pode voltar caso a pessoa erre a resposta
 	push ax
 
+	;compara respostas esperadas que são erradas, e dá uma dica
 	mov si, I1_0
 	mov cx, 0
 	call compare_input_memory
@@ -898,7 +890,7 @@ PERGUNTA2:
 	; Salvando a leitura da entrada na pilha até apertarem enter
 	call get_string_mem
 
-	mov ax, PERGUNTA2
+	mov ax, PERGUNTA2 ;salva o endereço do inínico pra pode voltar caso a pessoa erre a resposta
 	push ax
 
 	mov si, I2
@@ -968,7 +960,7 @@ PERGUNTA3:
 	; Printando pergunta
     mov si, Q3_0
 	mov bl, 15
-	mov dx, 3000
+	mov dx, 1000
     call print_string_lento
 
 	mov dx, 10000
@@ -1084,7 +1076,7 @@ PERGUNTA4:
 	; Printando pergunta
     mov si, Q4_0
 	mov bl, 15
-	mov dx, 4500
+	mov dx, 2500
     call print_string_lento
 
 	mov dx, 20000
@@ -1098,7 +1090,7 @@ PERGUNTA4:
 	; Printando pergunta
     mov si, Q4_1
 	mov bl, 15
-	mov dx, 3800
+	mov dx, 2300
     call print_string_lento
 
 	mov dx, 10000
@@ -1480,18 +1472,20 @@ PERGUNTACOR:
 	; Salvando a leitura da entrada na pilha até apertarem enter
 	call get_string_mem
 
-	mov ax, PERGUNTACOR
+	mov ax, PERGUNTACOR ;salva o endereço do inínico pra pode voltar caso a pessoa erre a resposta
 	push ax
 
+	;testes pra ver qual a string de cor digitada
 	.VERMELHO:
-	mov si, VERMELHO
+	mov si, VERMELHO ;carrega a stringa a ser comparada
 	mov cx, 0
-	call compare_input_memory
-	cmp cx, 0
-	jne .AZUL
-	mov bl, 4 ; vermelho
-	jmp .NOT_IMPOSTOR
+	call compare_input_memory ;compara
+	cmp cx, 0 ;ve se tem 0 diferenças
+	jne .AZUL ;se não for VERMELHO então pula pro AZUL
+	mov bl, 4 ; vermelho ;se for, então seta a cor pra vermelho
+	jmp .NOT_IMPOSTOR ; e pula pra .NOT_IMPOSTOR
 
+	;mesmo processo com outras cores
 	.AZUL:
 	mov si, AZUL
 	mov cx, 0
@@ -1560,34 +1554,34 @@ PERGUNTACOR:
 	mov cx, 0
 	call compare_input_memory
 	cmp cx, 0
-	jne .CIANO
+	jne .CIANO ;se não foi nenhuma das cores até agora, pula pro ciano q é o impsotor
 	mov bl, 6 ; MARROM
 	; jmp .NOT_IMPOSTOR
 
 	.NOT_IMPOSTOR:
-	call TELA_EJECTED
-	je TELA_NOT_IMPOSTOR
+	call TELA_EJECTED ;chama a tela do @ voando
+	je TELA_NOT_IMPOSTOR ;tela de imprimir se era ou não impostor
 
-	.CIANO:
+	.CIANO:    ;mesma coisa dos testes das outras cores
 	mov si, CIANO
 	mov cx, 0
 	call compare_input_memory
 	cmp cx, 0
-	je .THE_IMPOSTOR
+	je .THE_IMPOSTOR 
 
-	.ERRADO:
-	jmp TELA_ERRADO
+	.ERRADO: ;se não pegou nenhuma das coes até agora, então a string n é válida
+	jmp TELA_ERRADO ;o tela errado tem um ret no final
 
 	.THE_IMPOSTOR:
-	mov bl, 11 ; CIANO
+	mov bl, 11 ; CIANO   ;muda a cor
 	call TELA_EJECTED
 	pop ax ;tirar o PERGUNTACOR: da pilha
-	mov byte[BoolImp], 1
-	call TELA_NOT_IMPOSTOR
+	mov byte[BoolImp], 1 ;seta o booleano de impostor pra 1
+	call TELA_NOT_IMPOSTOR  ;por chamar com um call, ele vai seguir o fluxo aki pra baixo e ir para ULTIMA_PERGUNTA:
 
 ULTIMA_PERGUNTA:
 
-	mov ah, 0
+	mov ah, 0 ;limpa tela
 	mov al, 13
     int 10h
 
@@ -1673,6 +1667,7 @@ ULTIMA_TELA_ERRADA:
 
 	jmp ULTIMA_PERGUNTA
 
+;tela de aviso de imagens perigosas aos seus lindos olhos
 EPILEPSY_WARNING:
 	mov ah, 0
 	mov al, 12h
@@ -1690,27 +1685,28 @@ EPILEPSY_WARNING:
 	int 16h
 
 	cmp al, '1'
-	je VICTORY
+	je VICTORY ;animação do jooj
 
 	mov ah, 0
 	mov al, 12h
 	int 10h
 
-	mov si, commonjooj
+	mov si, commonjooj ;printa só a string commonjooj
 	mov bl, 15
 	call print_string
 
 	jmp $
 
+;animação do jooj
 VICTORY:
-	mov ah, 0
-	mov al, 12h
+	mov ah, 0 ;limpa tela
+	mov al, 12h ;modo de vídeo maior
 	int 10h
 
-	mov si, jooj3
+	mov si, jooj3 ;carrega o primeiro frame da animação
 
 	.B1:
-	mov bl, 9
+	mov bl, 9 ;começa com a cor 9 e vai até a 14. 15 é o fim, e reseta
 	jmp .LOOP
 
 	.JOOJ_LOOP:
@@ -1718,18 +1714,19 @@ VICTORY:
 
 	.LOOP:
 	
-	call print_jooj
+	call print_jooj ;printa o frame
 
-	mov dx, 2000
+	mov dx, 2000 ;espera um poquinho
 	call delay
 
-	inc bl
+	inc bl ;muda a cor
 	cmp bl, 15
-	je .B1
+	je .B1 ;se for 15 então volta pta .B1 pra resetar a cor
 
-	cmp si, jooj8
+	cmp si, jooj8 	;quando print_jooj acaba, o si está apontnado para o próximo frame.
+					;Então caso ele tenha passado do 3º frame (jooj8) ele volta pra JOOJ_LOOP pra resetar;
 	jg .JOOJ_LOOP
 
 	jmp .LOOP
 
-jmp $
+jmp $ ;cabosse
